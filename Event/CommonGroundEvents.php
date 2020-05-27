@@ -4,10 +4,9 @@
 
 namespace Conduction\CommonGroundBundle\Event;
 
-
 /**
-* TheCommonGroundEvents holds hookable events triggerd from the commonground service
-*/
+ * TheCommonGroundEvents holds hookable events triggerd from the commonground service.
+ */
 class CommonGroundEvents
 {
     /**
@@ -99,5 +98,4 @@ class CommonGroundEvents
      * @Event("Conduction\CommonGroundBundle\Event\ResourceDeletedEvent")
      */
     public const DELETED = 'commonground.resource.deleted';
-
 }

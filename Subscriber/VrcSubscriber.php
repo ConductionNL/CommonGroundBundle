@@ -5,9 +5,7 @@ namespace Conduction\CommonGroundBundle\Subscriber;
 use Conduction\CommonGroundBundle\Event\CommonGroundEvents;
 use Conduction\CommonGroundBundle\Event\CommongroundUpdateEvent;
 use Conduction\CommonGroundBundle\Service\VrcService;
-
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 
 class VrcSubscriber implements EventSubscriberInterface
@@ -22,16 +20,16 @@ class VrcSubscriber implements EventSubscriberInterface
     public static function getSubscribedEvents()
     {
         return [
-            CommonGroundEvents::SAVE => 'save',
-            CommonGroundEvents::SAVED => 'saved',
-            CommonGroundEvents::DELETE => 'delete',
-            CommonGroundEvents::DELETED => 'deleted',
-            CommonGroundEvents::CREATE => 'create',
-            CommonGroundEvents::CREATED => 'created',
-            CommonGroundEvents::UPDATE => 'update',
-            CommonGroundEvents::UPDATED => 'updated',
+            CommonGroundEvents::SAVE     => 'save',
+            CommonGroundEvents::SAVED    => 'saved',
+            CommonGroundEvents::DELETE   => 'delete',
+            CommonGroundEvents::DELETED  => 'deleted',
+            CommonGroundEvents::CREATE   => 'create',
+            CommonGroundEvents::CREATED  => 'created',
+            CommonGroundEvents::UPDATE   => 'update',
+            CommonGroundEvents::UPDATED  => 'updated',
             CommonGroundEvents::RESOURCE => 'resource',
-            CommonGroundEvents::LIST => 'list',
+            CommonGroundEvents::LIST     => 'list',
             //KernelEvents::VIEW => ['onCreate', ResourceCreateEvent::NAME],
             //ResourceCreateEvent::NAME => 'onCreate',
             //ResourceCreatedEvent::NAME => 'onCreated',
@@ -42,19 +40,16 @@ class VrcSubscriber implements EventSubscriberInterface
     // Our resource might reqoure aditional resources to be created, so lets look into that
     public function save(CommongroundUpdateEvent $event)
     {
-
     }
 
     // Our resource might reqoure aditional resources to be created, so lets look into that
     public function saved(CommongroundUpdateEvent $event)
     {
-
     }
 
     // Our resource might reqoure aditional resources to be created, so lets look into that
     public function delete(CommongroundUpdateEvent $event)
     {
-
     }
 
     // Our resource might reqoure aditional resources to be created, so lets look into that
@@ -67,7 +62,6 @@ class VrcSubscriber implements EventSubscriberInterface
     // Our resource might reqoure aditional resources to be created, so lets look into that
     public function update(CommongroundUpdateEvent $event)
     {
-
     }
 
     // Our resource might reqoure aditional resources to be created, so lets look into that
@@ -75,7 +69,7 @@ class VrcSubscriber implements EventSubscriberInterface
     {
         // Lets make sure we only triger on requests resources
         /* @todo lets also check for a vrc component */
-        if($event->getResource()['@type'] != 'Request'){
+        if ($event->getResource()['@type'] != 'Request') {
             return;
         }
 
@@ -88,13 +82,10 @@ class VrcSubscriber implements EventSubscriberInterface
     // Our resource might reqoure aditional resources to be created, so lets look into that
     public function create(CommongroundUpdateEvent $event)
     {
-
     }
 
     // Our resource might reqoure aditional resources to be created, so lets look into that
     public function created(CommongroundUpdateEvent $event)
     {
-
     }
-
 }

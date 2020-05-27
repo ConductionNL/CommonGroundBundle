@@ -4,9 +4,6 @@
 
 namespace Conduction\CommonGroundBundle\Service;
 
-use Conduction\CommonGroundBundle\Service\CommonGroundService;
-use Conduction\CommonGroundBundle\Service\CamundaService;
-
 /*
  * The VRC Service handels logic reqoured to properly connect with the vrc component
  *
@@ -31,32 +28,29 @@ class VrcService
     public function onSave(?array $resource)
     {
         // Lets get the request type
-        if(key_exists('requestType', $resource)) {
+        if (array_key_exists('requestType', $resource)) {
             $requestType = $this->commonGroundService->getResource($resource['requestType']);
         }
 
         // Lets get the process type
-        if(key_exists('processType', $resource)) {
+        if (array_key_exists('processType', $resource)) {
             $processType = $this->commonGroundService->getResource($resource['processType']);
         }
 
         // We need to loop trough the properties, and see if items need to be created
-        if(key_exists('properties', $resource)){
-            foreach($resource['properties'] as $property){
-
+        if (array_key_exists('properties', $resource)) {
+            foreach ($resource['properties'] as $property) {
             }
         }
 
         // Lets see if we need to create assents for the submitters
-        if(key_exists('submitters', $resource)){
-            foreach ($resource['submitters'] as $submitter){
-
+        if (array_key_exists('submitters', $resource)) {
+            foreach ($resource['submitters'] as $submitter) {
             }
         }
 
         return $resource;
     }
-
 
     /*
      * Aditional logic triggerd afther a Request has been newly created
@@ -67,12 +61,12 @@ class VrcService
     public function onCreated(?array $resource)
     {
         // If the request has Zaak properties we need to trigger those
-        if(key_exists('caseType', $requestType) && !key_exists('cases', $resource)){
+        if (array_key_exists('caseType', $requestType) && !array_key_exists('cases', $resource)) {
             /* @todo create a case */
         }
 
         // If the request has Camunda requests we need to trigger those
-        if(key_exists('camundaProces', $requestType) && !key_exists('processes', $resource)){
+        if (array_key_exists('camundaProces', $requestType) && !array_key_exists('processes', $resource)) {
             /* @todo start a camunda procces */
             $procces = $this->camundaService->proccesFromRequest($resource);
             $resource['processes'] = [$procces];
@@ -88,21 +82,19 @@ class VrcService
     public function onUpdated(?array $resource)
     {
         // Lets first see if we can grap an requested type
-        if(!$requestType = $this->commonGroundService->getResource($resource['requestType'])){
+        if (!$requestType = $this->commonGroundService->getResource($resource['requestType'])) {
             return;
         }
 
         // If the request has Zaak properties we need to trigger those
-        if(key_exists('caseType', $requestType) && !key_exists('cases', $resource) && !key_exists('camundaProces', $requestType)){
+        if (array_key_exists('caseType', $requestType) && !array_key_exists('cases', $resource) && !array_key_exists('camundaProces', $requestType)) {
             /* @todo create a case */
             $case = null;
             $resource['cases'] = [$case];
         }
 
         // If the request has Camunda requests we need to trigger those
-        if(key_exists('camundaProces', $requestType)) //&& (!key_exists('processes', $resource) || count($resource['processes']) == 0))
-        {
-
+        if (array_key_exists('camundaProces', $requestType)) { //&& (!key_exists('processes', $resource) || count($resource['processes']) == 0))
             /* @todo start a camunda procces */
 
             $resource = $this->startProcess($resource, $requestType['camundaProces'], $requestType['caseType']);
@@ -125,7 +117,7 @@ class VrcService
     public function startProcess(?array $resource, ?string $proccess, ?string $caseType)
     {
         // Lets first see if we can grap an requested type
-        if(!$requestType = $this->commonGroundService->getResource($resource['requestType'])){
+        if (!$requestType = $this->commonGroundService->getResource($resource['requestType'])) {
             return false;
         }
 
@@ -133,34 +125,33 @@ class VrcService
 
         // Declare on behalve on authentication
         $services = [
-            'ztc'=>['jwt'=>'Bearer '.$this->commonGroundService->getJwtToken('ztc')],
-            'zrc'=>['jwt'=>'Bearer '.$this->commonGroundService->getJwtToken('zrc')]
+            'ztc'=> ['jwt'=>'Bearer '.$this->commonGroundService->getJwtToken('ztc')],
+            'zrc'=> ['jwt'=>'Bearer '.$this->commonGroundService->getJwtToken('zrc')],
         ];
 
-        $formvariables = $this->commonGroundService->getResource(['component'=>'be','type'=>'process-definition/key/'.$proccess.'/form-variables']);
-
+        $formvariables = $this->commonGroundService->getResource(['component'=>'be', 'type'=>'process-definition/key/'.$proccess.'/form-variables']);
 
         // Transfer the  default properties
-        foreach($formvariables as $key => $value){
-            $properties[] = ['naam'=> $key,'waarde'=>$value['value']];
+        foreach ($formvariables as $key => $value) {
+            $properties[] = ['naam'=> $key, 'waarde'=>$value['value']];
         }
 
         // Transfer te request properties
-        foreach($resource['properties'] as $key => $value){
-            $properties[] = ['naam'=> $key,'waarde'=> $value];
+        foreach ($resource['properties'] as $key => $value) {
+            $properties[] = ['naam'=> $key, 'waarde'=> $value];
         }
 
         $variables = [
-            'services'=>['type'=>'json','value'=> json_encode($services)],
-            'eigenschappen'=>['type'=>'json','value'=> json_encode($properties)],
-            'zaaktype'=>['type'=>'String','value'=> 'https://openzaak.utrechtproeftuin.nl/catalogi/api/v1/zaaktypen/'.$caseType],
-            'organisatieRSIN'=>['type'=>'String','value'=> $this->commonGroundService->getResource($resource['organization'])['rsin']]
+            'services'       => ['type'=>'json', 'value'=> json_encode($services)],
+            'eigenschappen'  => ['type'=>'json', 'value'=> json_encode($properties)],
+            'zaaktype'       => ['type'=>'String', 'value'=> 'https://openzaak.utrechtproeftuin.nl/catalogi/api/v1/zaaktypen/'.$caseType],
+            'organisatieRSIN'=> ['type'=>'String', 'value'=> $this->commonGroundService->getResource($resource['organization'])['rsin']],
         ];
 
         // Build the post
-        $post = ['withVariablesInReturn'=>true,'variables'=>$variables];
+        $post = ['withVariablesInReturn'=>true, 'variables'=>$variables];
 
-        $procces = $this->commonGroundService->createResource($post, ['component'=>'be','type'=>'process-definition/key/'.$requestType['camundaProces'].'/submit-form']);
+        $procces = $this->commonGroundService->createResource($post, ['component'=>'be', 'type'=>'process-definition/key/'.$requestType['camundaProces'].'/submit-form']);
         $resource['processes'] = [$procces['links'][0]['href']];
 
         /* @todo dit is  natuurlijk but lellijk en moet eigenlijk worden upgepakt in een onCreate hook */
@@ -168,7 +159,7 @@ class VrcService
         unset($resource['children']);
         unset($resource['parent']);
 
-        return $resource = $this->commonGroundService->saveResource($resource, ['component'=>'vrc','type'=>'requests']);
+        return $resource = $this->commonGroundService->saveResource($resource, ['component'=>'vrc', 'type'=>'requests']);
     }
 
     /*
@@ -179,23 +170,22 @@ class VrcService
      */
     public function getTasks(?array $resource)
     {
-        $tasks=[];
+        $tasks = [];
 
         // Lets see if we have procceses tied to this request
-        if(!key_exists('processes', $resource)|| !is_array($resource['processes'])){
-          return $tasks;
+        if (!array_key_exists('processes', $resource) || !is_array($resource['processes'])) {
+            return $tasks;
         }
 
         // Lets get the tasks for each procces atached to this request
-        foreach ($resource['processes'] as $process){
-             //$processTasks = $this->commonGroundService->getResourceList(['component'=>'be','type'=>'task'],['processInstanceId'=> $this->commonGroundService->getUuidFromUrl($process)]);
-             $processTasks = $this->commonGroundService->getResourceList(['component'=>'be','type'=>'task'],['processInstanceId'=> '0a3d56dd-9345-11ea-ae32-0e13a3f6559d']);
-             // Lets get the form elements
-             foreach ($processTasks as $key=>$value){
-                 $processTasks[$key]['form'] = $this->getTaskForm($value['id']);
-             }
-             $tasks = array_merge($tasks, $processTasks);
-
+        foreach ($resource['processes'] as $process) {
+            //$processTasks = $this->commonGroundService->getResourceList(['component'=>'be','type'=>'task'],['processInstanceId'=> $this->commonGroundService->getUuidFromUrl($process)]);
+            $processTasks = $this->commonGroundService->getResourceList(['component'=>'be', 'type'=>'task'], ['processInstanceId'=> '0a3d56dd-9345-11ea-ae32-0e13a3f6559d']);
+            // Lets get the form elements
+            foreach ($processTasks as $key=>$value) {
+                $processTasks[$key]['form'] = $this->getTaskForm($value['id']);
+            }
+            $tasks = array_merge($tasks, $processTasks);
         }
 
         return $tasks;
@@ -209,7 +199,7 @@ class VrcService
      */
     public function getTaskForm(?string $taskId)
     {
-        return $this->commonGroundService->getResource(['component'=>'be','type'=>'task','id'=> $taskId.'/rendered-form','accept'=>'application/xhtml+xml']);
+        return $this->commonGroundService->getResource(['component'=>'be', 'type'=>'task', 'id'=> $taskId.'/rendered-form', 'accept'=>'application/xhtml+xml']);
     }
 
     /*
@@ -220,8 +210,7 @@ class VrcService
      */
     public function checkProperties(?array $request)
     {
-        foreach($request['properties'] as $property){
-
+        foreach ($request['properties'] as $property) {
         }
 
         return $request;
@@ -237,14 +226,10 @@ class VrcService
     public function checkProperty(?array $request, $propertys)
     {
         // Lets first see if we can grap an requested type and if it has stages
-        if(!$requestType = $this->commonGroundService->getResource($resource['requestType']) || !key_exists('stages', $requestType)){
+        if (!$requestType = $this->commonGroundService->getResource($resource['requestType']) || !array_key_exists('stages', $requestType)) {
             return;
         }
 
-
-
         return $requestType;
     }
-
-
 }

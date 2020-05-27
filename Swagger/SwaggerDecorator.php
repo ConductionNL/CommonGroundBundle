@@ -155,13 +155,11 @@ final class SwaggerDecorator implements NormalizerInterface
             $docs['servers'] = [];
         }
 
-        if($this->params->get('app_env') == 'prod'){
-            $docs['servers'][] = ['name'=>$this->params->get('app_domain'),'url'=>''.$this->params->get('app_name').'.'.$this->params->get('app_domain'),];
+        if ($this->params->get('app_env') == 'prod') {
+            $docs['servers'][] = ['name'=>$this->params->get('app_domain'), 'url'=>''.$this->params->get('app_name').'.'.$this->params->get('app_domain')];
+        } else {
+            $docs['servers'][] = ['name'=>$this->params->get('app_domain'), 'url'=>''.$this->params->get('app_name').'.'.$this->params->get('app_env').'.'.$this->params->get('app_domain')];
         }
-        else{
-            $docs['servers'][] = ['name'=>$this->params->get('app_domain'),'url'=>''.$this->params->get('app_name').'.'.$this->params->get('app_env').'.'.$this->params->get('app_domain'),];
-        }
-
 
         /*
         app_domain
@@ -169,8 +167,6 @@ final class SwaggerDecorator implements NormalizerInterface
             $docs['servers'][$key] = $value;
         }
         */
-
-
 
         // Lets set the external documentation
         if (array_key_exists('externalDocs', $docs)) {

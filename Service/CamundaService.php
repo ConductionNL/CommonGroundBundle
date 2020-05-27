@@ -4,7 +4,6 @@
 
 namespace Conduction\CommonGroundBundle\Service;
 
-
 class CamundaService
 {
     private $commonGroundService;
@@ -27,28 +26,26 @@ class CamundaService
 
         // Declare on behalve on authentication
         $services = [
-            'vtc'=>['jwt'=>'Bearer '.$this->commonGroundService->getJwtToken('vtc')],
-            'vrc'=>['jwt'=>'Bearer '.$this->commonGroundService->getJwtToken('vrc')]
+            'vtc'=> ['jwt'=>'Bearer '.$this->commonGroundService->getJwtToken('vtc')],
+            'vrc'=> ['jwt'=>'Bearer '.$this->commonGroundService->getJwtToken('vrc')],
         ];
 
         // Build eigenschapen
         $eigenschappen = [];
-        foreach ($request['properties'] as $key => $value){
+        foreach ($request['properties'] as $key => $value) {
             $eigenschappen[] = ['naam'=>$key, 'waarde'=>$value];
         }
 
         $variables = [
-            'services'=>['type'=>'json','value'=> json_encode($services)],
-            'eigenschappen'=>['type'=>'json','value'=> json_encode($eigenschappen)],
-            'zaaktype'=>['type'=>'String','value'=> $requestType['caseType']],
-            'organisatieRSIN'=>['type'=>'String','value'=> $request['organization']]
+            'services'       => ['type'=>'json', 'value'=> json_encode($services)],
+            'eigenschappen'  => ['type'=>'json', 'value'=> json_encode($eigenschappen)],
+            'zaaktype'       => ['type'=>'String', 'value'=> $requestType['caseType']],
+            'organisatieRSIN'=> ['type'=>'String', 'value'=> $request['organization']],
         ];
 
         // Build the post
-        $post = ['withVariablesInReturn'=>true,'variables'=>$variables];
+        $post = ['withVariablesInReturn'=>true, 'variables'=>$variables];
 
-        return $this->commonGroundService->createResource($post, ['component'=>'be','type'=>'/process-definition/key/'.$requestType['camundaProces'].'/submit-form']);
+        return $this->commonGroundService->createResource($post, ['component'=>'be', 'type'=>'/process-definition/key/'.$requestType['camundaProces'].'/submit-form']);
     }
-
-
 }

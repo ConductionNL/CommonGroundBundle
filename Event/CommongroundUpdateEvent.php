@@ -7,8 +7,8 @@ namespace Conduction\CommonGroundBundle\Event;
 use Symfony\Contracts\EventDispatcher\Event;
 
 /**
-* The commonground.resource.update is dispatched each time before an commonground resource is updated
-*/
+ * The commonground.resource.update is dispatched each time before an commonground resource is updated.
+ */
 class CommongroundUpdateEvent extends Event
 {
     public const NAME = 'commonground.update';
@@ -25,6 +25,7 @@ class CommongroundUpdateEvent extends Event
     public function setResource(?array $resource)
     {
         $this->resource = $resource;
+
         return $this;
     }
 
@@ -36,6 +37,7 @@ class CommongroundUpdateEvent extends Event
     public function setComponent(?array $component)
     {
         $this->component = $component;
+
         return $this;
     }
 

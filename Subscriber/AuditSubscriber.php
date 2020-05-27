@@ -73,7 +73,6 @@ class AuditSubscriber implements EventSubscriberInterface
 
         //
         if ($result != null && !$result instanceof Paginator && !$result instanceof Entrypoint && !is_array($result)) {
-
             $log->setResource($result->getid());
             $log->setResourceType($this->em->getMetadataFactory()->getMetadataFor(get_class($result))->getName());
         }

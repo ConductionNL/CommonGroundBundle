@@ -7,8 +7,8 @@ namespace Conduction\CommonGroundBundle\Event;
 use Symfony\Contracts\EventDispatcher\Event;
 
 /**
-* The commonground.resource.delete event is dispatched each time before an commonground resource is deleted
-*/
+ * The commonground.resource.delete event is dispatched each time before an commonground resource is deleted.
+ */
 class ResourceDeleteEvent extends Event
 {
     public const NAME = 'commonground.resource.delete';
@@ -25,6 +25,7 @@ class ResourceDeleteEvent extends Event
     public function setResource(?array $resource)
     {
         $this->resource = $resource;
+
         return $this;
     }
 
@@ -36,6 +37,7 @@ class ResourceDeleteEvent extends Event
     public function setComponent(?array $component)
     {
         $this->component = $component;
+
         return $this;
     }
 

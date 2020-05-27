@@ -7,8 +7,8 @@ namespace Conduction\CommonGroundBundle\Event;
 use Symfony\Contracts\EventDispatcher\Event;
 
 /**
-* The commonground.resource event is dispatched each time before an commongroundresource list aquired through an api
-*/
+ * The commonground.resource event is dispatched each time before an commongroundresource list aquired through an api.
+ */
 class ResourceEvent extends Event
 {
     public const NAME = 'commonground.resource';
@@ -25,6 +25,7 @@ class ResourceEvent extends Event
     public function setResource(?array $resource)
     {
         $this->resource = $resource;
+
         return $this;
     }
 
@@ -36,6 +37,7 @@ class ResourceEvent extends Event
     public function setComponent(?array $component)
     {
         $this->component = $component;
+
         return $this;
     }
 

@@ -7,8 +7,8 @@ namespace Conduction\CommonGroundBundle\Event;
 use Symfony\Contracts\EventDispatcher\Event;
 
 /**
-* The commonground.resource.saved event is dispatched each time afther an commonground resource is saved
-*/
+ * The commonground.resource.saved event is dispatched each time afther an commonground resource is saved.
+ */
 class ResourceSavedEvent extends Event
 {
     public const NAME = 'commonground.resource.saved';
@@ -25,6 +25,7 @@ class ResourceSavedEvent extends Event
     public function setResource(?array $resource)
     {
         $this->resource = $resource;
+
         return $this;
     }
 
@@ -36,6 +37,7 @@ class ResourceSavedEvent extends Event
     public function setComponent(?array $component)
     {
         $this->component = $component;
+
         return $this;
     }
 

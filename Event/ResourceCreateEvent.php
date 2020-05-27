@@ -7,8 +7,8 @@ namespace Conduction\CommonGroundBundle\Event;
 use Symfony\Contracts\EventDispatcher\Event;
 
 /**
-* The commonground.resource.create is dispatched each time before an commonground resource is created
-*/
+ * The commonground.resource.create is dispatched each time before an commonground resource is created.
+ */
 class ResourceCreateEvent extends Event
 {
     public const NAME = 'commonground.resource.create';
@@ -25,6 +25,7 @@ class ResourceCreateEvent extends Event
     public function setResource(?array $resource)
     {
         $this->resource = $resource;
+
         return $this;
     }
 
@@ -36,6 +37,7 @@ class ResourceCreateEvent extends Event
     public function setComponent(?array $component)
     {
         $this->component = $component;
+
         return $this;
     }
 
