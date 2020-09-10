@@ -435,6 +435,11 @@ class VrcService
             } else {
                 $post = ['url'=>$request['order']];
                 $invoice = $this->commonGroundService->saveResource($post, ['component' => 'bc', 'type' => 'order']);
+
+                // This should become adding the invoice to invoices instead of setting the invoice.
+                if(key_exists('@id', $invoice)){
+                    $order['invoice'] = $invoice['@id'];
+                }
             }
         }
 
