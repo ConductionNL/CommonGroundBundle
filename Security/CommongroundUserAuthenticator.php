@@ -86,7 +86,7 @@ class CommongroundUserAuthenticator extends AbstractGuardAuthenticator
         }
         */
 
-        $users = $this->commonGroundService->getResourceList(['component'=>'uc', 'type'=>'users'], ['username'=> $credentials['username']], true);
+        $users = $this->commonGroundService->getResourceList(['component'=>'uc', 'type'=>'users'], ['username'=> $credentials['username']], true, false, true, false, false);
         $users = $users['hydra:member'];
 
         if (!$users || count($users) < 1) {
@@ -104,7 +104,7 @@ class CommongroundUserAuthenticator extends AbstractGuardAuthenticator
 
     public function checkCredentials($credentials, UserInterface $user)
     {
-        $user = $this->commonGroundService->createResource($credentials, ['component'=>'uc', 'type'=>'login']);
+        $user = $this->commonGroundService->createResource($credentials, ['component'=>'uc', 'type'=>'login'], false, true, false, false);
 
         if (!$user) {
             return false;
@@ -125,7 +125,12 @@ class CommongroundUserAuthenticator extends AbstractGuardAuthenticator
             return new RedirectResponse('/'.$this->params->get('app_subpath').$this->router->generate('app_user_login', []));
         }
 
-        return new RedirectResponse($this->router->generate('app_user_login', [], UrlGeneratorInterface::RELATIVE_PATH));
+        $url = $this->router->generate('app_user_login', [], UrlGeneratorInterface::RELATIVE_PATH);
+        if($url == ''){
+            $url ='/';
+        }
+
+        return new RedirectResponse($url);
     }
 
     /**

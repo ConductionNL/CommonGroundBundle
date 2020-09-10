@@ -119,17 +119,17 @@ class VrcService
                     foreach ($value as $propertyKey => $propertyValue) {
                         if ($this->checkIfEmpty($propertyValue)) {
                             unset($request['properties'][$key][$propertyKey]);
-                            break;
-                        }
-                        $createdResource = $this->commonGroundService->saveResource($propertyValue, ['component' => $component[0], 'type' => $component[1]]);
-                        if (is_array($createdResource) && key_exists('@id', $createdResource)) {
-                            $request['properties'][$key][$propertyKey] = $createdResource['@id'];
+                        } elseif (is_array($propertyValue) || !$this->commonGroundService->isResource($propertyValue)) {
+                            $createdResource = $this->commonGroundService->saveResource($propertyValue, ['component' => $component[0], 'type' => $component[1]]);
+                            if (is_array($createdResource) && key_exists('@id', $createdResource)) {
+                                $request['properties'][$key][$propertyKey] = $createdResource['@id'];
+                            }
                         }
                     }
                 } else {
                     if ($this->checkIfEmpty($value)) {
                         unset($request['properties'][$key]);
-                    } else {
+                    } elseif (is_array($value) || !$this->commonGroundService->isResource($value)) {
                         $createdResource = $this->commonGroundService->saveResource($value, ['component' => $component[0], 'type' => $component[1]]);
                         if (is_array($createdResource) && key_exists('@id', $createdResource)) {
                             $request['properties'][$key] = $createdResource['@id'];
@@ -160,9 +160,9 @@ class VrcService
         // Lets create a start date  for  this request
         // Oke we need to try to figure out  a date for this request
         if (array_key_exists('datum', $request['properties'])) {
-            $startDate = (new \DateTime(strtotime($request['properties']['datum'])));
+            $startDate = (new \DateTime($request['properties']['datum']));
         } elseif (array_key_exists('date', $request['properties'])) {
-            $startDate = (new \DateTime(strtotime($request['properties']['date'])));
+            $startDate = (new \DateTime($request['properties']['date']));
         } else {
             $startDate = new \DateTime();
         }
