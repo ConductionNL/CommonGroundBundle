@@ -382,7 +382,6 @@ class CommonGroundService
                     $auth = [$component['username'], $component['password']];
             }
         }
-
         if (!$async) {
             try {
                 $response = $this->client->request('GET', $url, [
@@ -1102,7 +1101,12 @@ class CommonGroundService
                 ($this->params->get('app_subpath_routing') && $this->params->get('app_subpath_routing') !== 'false') &&
                 (!$this->params->get('app_internal') || $this->params->get('app_internal') === 'false')
             ) {
-                $componentUrl = $this->cleanUrl(['component' => $this->getComponentFromUrl($parsedUrl)]);
+                $component = $this->getComponentFromUrl($parsedUrl);
+                if(strpos($component, 'http') !== false){
+                    $componentUrl = $component;
+                } else {
+                    $componentUrl = $this->cleanUrl(['component' => $component]);
+                }
                 $object['@id'] = $componentUrl.$object['@id'];
             } else {
                 $object['@id'] = $parsedUrl['scheme'].'://'.$parsedUrl['host'].$object['@id'];
@@ -1127,6 +1131,17 @@ class CommonGroundService
             $component = $path[$versionKey + 1];
         } else {
             $component = explode('.', $parsedUrl['host'])[0];
+        }
+        if(
+            $parsedUrl['host'] != $this->params->get('app_domain') &&
+            $parsedUrl['host'] != "{$this->params->get('app_env')}.{$this->params->get('app_domain')}" &&
+            $parsedUrl['host'] != "$component.{$this->params->get('app_env')}.{$this->params->get('app_domain')}"
+        ){
+            if(strpos($component, $parsedUrl['host']) !== false){
+                return $parsedUrl['host'];
+            } else {
+                return "{$parsedUrl['scheme']}://{$parsedUrl['host']}/api/v1/$component";
+            }
         }
 
         return $component;
