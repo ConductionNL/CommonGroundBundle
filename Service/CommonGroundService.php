@@ -249,7 +249,7 @@ class CommonGroundService
         /*
          * Pagination might have been aplied, if so we would like to pass that trough
          */
-        if($start = $this->request->query->get('start')) $query['start'] = (int) $start;
+        if($start = $this->request->query->get('page')) $query['page'] = (int) $page;
         if($limit = $this->request->query->get('limit')) $query['limit'] = (int) $limit;
 
         /*
