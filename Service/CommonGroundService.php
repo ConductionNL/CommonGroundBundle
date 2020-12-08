@@ -334,7 +334,7 @@ class CommonGroundService
     }
 
     /*
-     * Get a single resource from a common ground componant
+     * Get a single resource from a common ground component
      *
      * param $endpoint array Eather an endpoint in the form of an url or and component as array to wisch to post
      * param $query array optional query paramaters

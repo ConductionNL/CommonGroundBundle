@@ -16,7 +16,7 @@ namespace Conduction\CommonGroundBundle\Result;
  * @license EUPL <https://github.com/ConductionNL/productenendienstencatalogus/blob/master/LICENSE.md>
  *
  */
-class ResultInterface implements ArrayAccess
+class ResultInterface implements \ArrayAccess
 {
     /**
      * @var array The items in this list
@@ -70,7 +70,11 @@ class ResultInterface implements ArrayAccess
      */
     private $query;
 
-    // Lets provide a route of filling up the array when creating the object
+    /*
+     * Lets provide a route of filling up the array when creating the object
+     *
+     * param $result array the result from a guzzle call
+     */
     public function __construct($result = null)
     {
         if($result){
@@ -81,6 +85,11 @@ class ResultInterface implements ArrayAccess
 
     /*
      * Populate the object with an result from the commonground service
+     *
+     * param $result array the result from a guzzle call
+     * param $query array optional query parameters passed to a guzzle call
+     *
+     * return ResultInterface this resource
      */
     public function load(array $result, ?array $query): self
     {
@@ -123,7 +132,14 @@ class ResultInterface implements ArrayAccess
         return $this->results;
     }
 
-    // Putting a value in our "array"
+    /*
+     * Putting a value in our "array"
+     *
+     * param $key the key of the item within our results array
+     * param $value the actual value that we want tp store
+     *
+     * return ResultInterface this resource
+     */
     public function offsetSet($key, $value): self
     {
         if (is_null($key)) {
@@ -135,19 +151,35 @@ class ResultInterface implements ArrayAccess
         return $this;
     }
 
-    // Checking if a key exisits in our "array"
+    /*
+     * Checking if a key exisits in our "array"
+     *
+     * param $key the key of the item within our results array
+     *
+     * return boolean whether or not this item exists
+     */
     public function offsetExists($key)
     {
         return isset($this->results[$key]);
     }
 
-    // Removing a value in our "array"
+    /*
+     * Removing a value in our "array"
+     *
+     * param $key the key of the item within our results array
+     */
     public function offsetUnset($key): self
     {
         unset($this->results[$key]);
     }
 
-    // Getting a value from our "array"
+    /*
+     * Getting a value from our "array"
+     *
+     * param $key the key of the item within our results array
+     *
+     * return array or null this resource
+     */
     public function offsetGet($key)
     {
         if (! isset($this->results[$key])) {
