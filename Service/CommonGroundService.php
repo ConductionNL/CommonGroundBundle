@@ -4,6 +4,7 @@
 
 namespace Conduction\CommonGroundBundle\Service;
 
+use Conduction\CommonGroundBundle\Result\ResultInterface;
 use Conduction\CommonGroundBundle\Event\CommonGroundEvents;
 use Conduction\CommonGroundBundle\Event\CommongroundUpdateEvent;
 use DateInterval;
@@ -329,7 +330,7 @@ class CommonGroundService
             );
         }
 
-        return $response;
+        return New ResultInterface($response);
     }
 
     /*

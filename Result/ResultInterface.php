@@ -1,6 +1,6 @@
 <?php
 
-namespace Conduction\CommonGroundBundle\Entity;
+namespace Conduction\CommonGroundBundle\Result;
 
 
 
@@ -16,7 +16,7 @@ namespace Conduction\CommonGroundBundle\Entity;
  * @license EUPL <https://github.com/ConductionNL/productenendienstencatalogus/blob/master/LICENSE.md>
  *
  */
-class PaginatedList implements ArrayAccess
+class ResultInterface implements ArrayAccess
 {
     /**
      * @var array The items in this list
@@ -70,6 +70,15 @@ class PaginatedList implements ArrayAccess
      */
     private $query;
 
+    // Lets provide a route of filling up the array when creating the object
+    public function __construct($result = null)
+    {
+        if($result){
+            $this->load($result);
+        }
+    }
+
+
     /*
      * Populate the object with an result from the commonground service
      */
@@ -106,8 +115,15 @@ class PaginatedList implements ArrayAccess
     }
 
     /*
-     * We need some to array magic
+     * We need some to array magic to properly us this
      */
+
+    // PHP dosn't actually have an to array method but this allows us to pick it up with an custom twig filter
+    public function __toArray(){
+        return $this->results;
+    }
+
+    // Putting a value in our "array"
     public function offsetSet($key, $value): self
     {
         if (is_null($key)) {
@@ -119,16 +135,19 @@ class PaginatedList implements ArrayAccess
         return $this;
     }
 
+    // Checking if a key exisits in our "array"
     public function offsetExists($key)
     {
         return isset($this->results[$key]);
     }
 
+    // Removing a value in our "array"
     public function offsetUnset($key): self
     {
         unset($this->results[$key]);
     }
 
+    // Getting a value from our "array"
     public function offsetGet($key)
     {
         if (! isset($this->results[$key])) {
