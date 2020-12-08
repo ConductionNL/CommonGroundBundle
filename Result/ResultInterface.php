@@ -182,6 +182,12 @@ class ResultInterface implements \ArrayAccess
      */
     public function offsetGet($key)
     {
+        // Lets make sure that we provide some backawards compatability
+        if($key == "results") return $this->results;
+        if($key == "hydra:member") return $this->results;
+        if($key == "_embedded") return $this->results;
+
+        // Then the normal handling
         if (! isset($this->results[$key])) {
             return null;
         }
