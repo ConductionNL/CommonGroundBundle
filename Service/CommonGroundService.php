@@ -93,12 +93,17 @@ class CommonGroundService
 
         $this->request = $this->requestStack->getCurrentRequest();
 
+        $authorization = $this->params->get('app_commonground_key');
 
+        if($this->params->get('app_auth') == 'true')
+        {
+            $authorization = "Bearer {$this->getJwtToken()}";
+        }
         // To work with NLX we need a couple of default headers
         $this->headers = [
             'Accept'        => 'application/ld+json',
             'Content-Type'  => 'application/json',
-            'Authorization' => $this->params->get('app_commonground_key'),
+            'Authorization' => $authorization,
             // NLX
             'X-NLX-Request-Application-Id' => $this->params->get('app_commonground_id'), // the id of the application performing the request
             // NL Api Strategie

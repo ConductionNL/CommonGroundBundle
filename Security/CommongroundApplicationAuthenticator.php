@@ -147,7 +147,7 @@ class CommongroundApplicationAuthenticator extends AbstractGuardAuthenticator
             }
         }
 
-        $public = JWKFactory::createFromValues($application->getPublicKey());
+        $public = JWKFactory::createFromValues($application['publicKey']);
 
         $creation = date_timestamp_set(new \DateTime(), $payload['iat']);
         $maxAge = new \DateTime("now - 1 hour");
@@ -157,7 +157,7 @@ class CommongroundApplicationAuthenticator extends AbstractGuardAuthenticator
         );
 
 
-        if($jwsVerifier->verifyWithKey($jwt, $public, 0) && $creation > $maxAge && $application->getHasAllAuthorizations()){
+        if($jwsVerifier->verifyWithKey($jwt, $public, 0) && $creation > $maxAge && $application['hasAllAuthorizations']){
             return true;
         }
         return false;
