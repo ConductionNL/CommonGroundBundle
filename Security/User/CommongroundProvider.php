@@ -43,8 +43,9 @@ class CommongroundProvider implements UserProviderInterface
         $organization = $user->getOrganization();
         $type = $user->getType();
         $person = $user->getPerson();
+        $authorization = $user->getAuthorization();
 
-        return $this->fetchUser($username, $password, $organization, $type, $person);
+        return $this->fetchUser($username, $password, $organization, $type, $person, $authorization);
     }
 
     public function supportsClass($class)
@@ -52,7 +53,7 @@ class CommongroundProvider implements UserProviderInterface
         return CommongroundUser::class === $class;
     }
 
-    private function fetchUser($username, $password, $organization, $type, $person)
+    private function fetchUser($username, $password, $organization, $type, $person, $authorization)
     {
         //only trigger if type of user is organization
         $application = $this->commonGroundService->cleanUrl(['component'=>'wrc', 'type'=>'applications', 'id'=>$this->params->get('app_id')]);
@@ -202,11 +203,10 @@ class CommongroundProvider implements UserProviderInterface
                 }
             case 'id-vault':
                 $person = $this->commonGroundService->getResource($user['person']);
-
                 if (isset($user['organization'])) {
-                    return new CommongroundUser($user['username'], $password, $person['name'], null, $user['roles'], $user['person'], $user['organization'], 'id-vault');
+                    return new CommongroundUser($user['username'], $password, $person['name'], null, $user['roles'], $user['person'], $user['organization'], 'id-vault', false, $authorization);
                 } else {
-                    return new CommongroundUser($user['username'], $password, $person['name'], null, $user['roles'], $user['person'], null, 'id-vault');
+                    return new CommongroundUser($user['username'], $password, $person['name'], null, $user['roles'], $user['person'], null, 'id-vault', false, $authorization);
                 }
             default:
                 throw new UsernameNotFoundException(

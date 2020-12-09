@@ -39,7 +39,10 @@ class CommongroundUser implements UserInterface, EquatableInterface
     /* Either true or false if a user is a resident */
     private $resident;
 
-    public function __construct(string $username = '', string $password = '', string $name = '', string $salt = null, array $roles = [], $person = null, $organization = null, $type = null, bool $resident = false, $locale = null)
+    /* jwt token */
+    private $authorization;
+
+    public function __construct(string $username = '', string $password = '', string $name = '', string $salt = null, array $roles = [], $person = null, $organization = null, $type = null, bool $resident = false, string $authorization = null, $locale = null)
     {
         $this->username = $username;
         $this->password = $password;
@@ -51,6 +54,7 @@ class CommongroundUser implements UserInterface, EquatableInterface
         $this->isActive = true;
         $this->type = $type;
         $this->resident = $resident;
+        $this->authorization = $authorization;
         $this->locale = $locale; // The language of this user
     }
 
@@ -102,6 +106,11 @@ class CommongroundUser implements UserInterface, EquatableInterface
     public function getName()
     {
         return $this->name;
+    }
+
+    public function getAuthorization()
+    {
+        return $this->authorization;
     }
 
     public function getLocale()

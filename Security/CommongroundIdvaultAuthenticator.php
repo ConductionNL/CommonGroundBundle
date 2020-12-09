@@ -78,7 +78,7 @@ class CommongroundIdvaultAuthenticator extends AbstractGuardAuthenticator
         $client = new Client([
             // Base URI is used with relative requests
             'headers'  => ['Content-Type' => 'application/json', 'Accept' => 'application/json'],
-            'base_uri' => 'https://dev.id-vault.com',
+            'base_uri' => 'https://id-vault.com',
             // You can set any number of default request options.
             'timeout'  => 2.0,
         ]);
@@ -103,6 +103,7 @@ class CommongroundIdvaultAuthenticator extends AbstractGuardAuthenticator
             'givenName'     => $json['given_name'],
             'familyName'    => $json['family_name'],
             'id'            => $json['jti'],
+            'authorization' => $accessToken['accessToken'],
         ];
 
         $request->getSession()->set(
@@ -188,9 +189,9 @@ class CommongroundIdvaultAuthenticator extends AbstractGuardAuthenticator
         array_push($user['roles'], 'scope.chin.checkins.read');
 
         if (isset($user['organization'])) {
-            return new CommongroundUser($user['username'], $user['username'], $person['name'], null, $user['roles'], $user['person'], $user['organization'], 'id-vault');
+            return new CommongroundUser($user['username'], $user['username'], $person['name'], null, $user['roles'], $user['person'], $user['organization'], 'id-vault', false, $credentials['authorization']);
         } else {
-            return new CommongroundUser($user['username'], $user['username'], $person['name'], null, $user['roles'], $user['person'], null, 'id-vault');
+            return new CommongroundUser($user['username'], $user['username'], $person['name'], null, $user['roles'], $user['person'], null, 'id-vault', false, $credentials['authorization']);
         }
     }
 
