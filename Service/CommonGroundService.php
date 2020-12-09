@@ -86,6 +86,7 @@ class CommonGroundService
 
         $this->request = $this->requestStack->getCurrentRequest();
 
+
         // To work with NLX we need a couple of default headers
         $this->headers = [
             'Accept'        => 'application/ld+json',
@@ -1391,33 +1392,61 @@ class CommonGroundService
      * @param array $component The code of the component
      * @param array The JWT token
      */
-    public function getJwtToken(?string $component)
+//    public function getJwtToken(?string $component)
+//    {
+//        $component = $this->getComponent($component);
+//
+//        $userId = '';
+//        $userRepresentation = '';
+//
+//        // Create token header as a JSON string
+//        $header = json_encode(['typ' => 'JWT', 'alg' => 'HS256', 'client_identifier' => $component['id']]);
+//
+//        // Create token payload as a JSON string
+//        $payload = json_encode(['iss' => $component['id'], 'client_id' => $component['id'], 'user_id' => $userId, 'user_representation' => $userRepresentation, 'iat' => time()]);
+//
+//        // Encode Header to Base64Url String
+//        $base64UrlHeader = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($header));
+//
+//        // Encode Payload to Base64Url String
+//        $base64UrlPayload = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($payload));
+//
+//        // Create Signature Hash
+//        $signature = hash_hmac('sha256', $base64UrlHeader.'.'.$base64UrlPayload, $component['secret'], true);
+//
+//        // Encode Signature to Base64Url String
+//        $base64UrlSignature = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($signature));
+//
+//        // Return JWT
+//        return $base64UrlHeader.'.'.$base64UrlPayload.'.'.$base64UrlSignature;
+//    }
+    public function getJwtToken()
     {
-        $component = $this->getComponent($component);
+        $algorithmManager = new AlgorithmManager([new RS512()]);
 
-        $userId = '';
-        $userRepresentation = '';
+        $jwk = JWKFactory::createFromValues(json_decode(base64_decode($this->params->get('app_commonground_secret_key')),true));
 
-        // Create token header as a JSON string
-        $header = json_encode(['typ' => 'JWT', 'alg' => 'HS256', 'client_identifier' => $component['id']]);
+        $jwsBuilder = new JWSBuilder($algorithmManager);
 
-        // Create token payload as a JSON string
-        $payload = json_encode(['iss' => $component['id'], 'client_id' => $component['id'], 'user_id' => $userId, 'user_representation' => $userRepresentation, 'iat' => time()]);
 
-        // Encode Header to Base64Url String
-        $base64UrlHeader = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($header));
+        $payload = json_encode([
+            'iat' => time(),
+            'iss' => $this->params->get('app_id'),
+            'client_id' => $this->params->get('app_id'),
+        ]);
 
-        // Encode Payload to Base64Url String
-        $base64UrlPayload = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($payload));
 
-        // Create Signature Hash
-        $signature = hash_hmac('sha256', $base64UrlHeader.'.'.$base64UrlPayload, $component['secret'], true);
+        $jws = $jwsBuilder
+            ->create()
+            ->withPayload($payload)
+            ->addSignature($jwk, ['alg'=>'RS512'])
+            ->build();
 
-        // Encode Signature to Base64Url String
-        $base64UrlSignature = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($signature));
+        $jwsSerializer = new CompactSerializer();
 
-        // Return JWT
-        return $base64UrlHeader.'.'.$base64UrlPayload.'.'.$base64UrlSignature;
+        $token = $jwsSerializer->serialize($jws, 0);
+
+        return $token;
     }
 
     /*
