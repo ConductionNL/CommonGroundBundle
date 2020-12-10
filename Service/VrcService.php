@@ -357,6 +357,7 @@ class VrcService
             $order['organization'] = $request['organization'];
             $order['resources'] = [$request['@id']];
 
+
             // Determining the custommer
             if (array_key_exists('submitters', $request) && !empty($request['submitters'])) {
                 // Lets go trought the options here
@@ -388,6 +389,8 @@ class VrcService
 
         $requestItems = [];
 
+        $orderUrl = '/orders/'.$order['id'];
+
         foreach ($requestOffers as $offer) {
             $offer = $this->commonGroundService->getResource($offer);
             // or in the mean time just replace the whole offer array
@@ -398,7 +401,7 @@ class VrcService
                 $orderItem['name'] = $offer['name'];
             }
             if (array_key_exists('description', $offer)) {
-                $orderItem['description'] = $offer['description'];
+                $orderItem['description'] = $offer['name'];
             }
             if (array_key_exists('price', $offer)) {
                 $orderItem['price'] = (string) $offer['price'];
@@ -408,7 +411,7 @@ class VrcService
             }
 
             $orderItem['quantity'] = 1;
-            $orderItem['order'] = $request['order'];
+            $orderItem['order'] = $orderUrl;
             $requestItems[$offer['@id']] = $orderItem;
         }
 
@@ -448,14 +451,16 @@ class VrcService
             if (count($invoices) > 0) {
                 $invoice = $invoices[0];
             } else {
+
                 $post = ['url'=>$request['order']];
-                $invoice = $this->commonGroundService->saveResource($post, ['component' => 'bc', 'type' => 'order']);
+                $invoice = $this->commonGroundService->saveResource($post, ['component' => 'bc', 'type' => 'invoices']);
             }
         }
 
         // We have changed some stuff about the order and its value so lets force a cache reload
 
         $order = $this->commonGroundService->getResource($request['order'], [], true);
+
         //$this->commonGroundService->clearFromsCash($order);
 
         return $request;

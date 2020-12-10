@@ -45,10 +45,14 @@ class IrcSubscriber implements EventSubscriberInterface
 
     public function create(CommongroundUpdateEvent $event)
     {
+
         $resource = $event->getResource();
         $url = $event->getUrl();
+
         if (!$url || !is_array($url) || $url['component'] != 'irc' || $url['type'] != 'assents') {
-            return false;
+            if (!is_array($url) && !is_array($url = parse_url($url)) && !in_array('/api/v1/irc/assents', $url)) {
+                return false;
+            }
         }
 
         $event->setResource($this->ircService->scanResource($resource));
