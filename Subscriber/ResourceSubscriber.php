@@ -45,8 +45,15 @@ class ResourceSubscriber implements EventSubscriberInterface
         $result = $event->getControllerResult();
         $route = $event->getRequest()->attributes->get('_route');
 
-        $type = explode("\\", get_class($result));
-        $type = $this->inflector->pluralize($this->inflector->tableize(end($type)));
+        if ($result) {
+            $type = explode("\\", get_class($result));
+            $type = $this->inflector->pluralize($this->inflector->tableize(end($type)));
+        } else {
+            $properties = array_slice(explode("/", $event->getRequest()->getPathInfo()), -2);
+            //@TODO: make dynamic for BRP etc.
+            $type = $properties[0];
+            $id = $properties[1];
+        }
 
         // Only do somthing if we are on te log route and the entity is logable
         if($this->params->get('app_notification') == 'true'){
@@ -66,7 +73,12 @@ class ResourceSubscriber implements EventSubscriberInterface
                     return;
             }
 
-            $notification['resource'] = "{$this->params->get('app_url')}/$type/{$result->getId()}";
+            if($result){
+                $notification['resource'] = "{$this->params->get('app_url')}/$type/{$result->getId()}";
+            } else {
+                $notification['resource'] = "{$this->params->get('app_url')}/$type/$id";
+            }
+
             $this->commonGroundService->createResource($notification, ['component' => 'nrc', 'type' => 'notifications']);
         }
     }
