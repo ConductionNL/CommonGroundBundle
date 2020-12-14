@@ -31,7 +31,7 @@ class ResourceSubscriber implements EventSubscriberInterface
         public static function getSubscribedEvents()
     {
         return [
-            KernelEvents::VIEW => ['notify', EventPriorities::PRE_VALIDATE],
+            KernelEvents::VIEW => ['notify', EventPriorities::PRE_SERIALIZE],
         ];
     }
 
