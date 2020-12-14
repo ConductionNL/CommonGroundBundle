@@ -5,6 +5,8 @@ namespace Conduction\CommonGroundBundle\Subscriber;
 use ApiPlatform\Core\EventListener\EventPriorities;
 use Conduction\CommonGroundBundle\Service\CommonGroundService;
 use Conduction\CommonGroundBundle\Service\NLXLogService;
+use Doctrine\Inflector\InflectorFactory;
+use Doctrine\Inflector\Inflector;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -19,51 +21,53 @@ class ResourceSubscriber implements EventSubscriberInterface
     private EntityManagerInterface $em;
     private SerializerInterface $serializer;
     private CommonGroundService $commonGroundService;
+    private Inflector $inflector;
 
-        public function __construct(ParameterBagInterface $params, EntityManagerInterface $em, SerializerInterface $serializer, CommonGroundService $commonGroundService)
+    public function __construct(ParameterBagInterface $params, EntityManagerInterface $em, SerializerInterface $serializer, CommonGroundService $commonGroundService)
     {
         $this->params = $params;
         $this->em = $em;
         $this->serializer = $serializer;
         $this->commonGroundService = $commonGroundService;
+        $this->inflector = InflectorFactory::create()->build();
     }
 
-        public static function getSubscribedEvents()
+    public static function getSubscribedEvents()
     {
         return [
             KernelEvents::VIEW => ['notify', EventPriorities::PRE_SERIALIZE],
         ];
     }
 
-        public function notify(ViewEvent $event)
+    public function notify(ViewEvent $event)
     {
         $method = $event->getRequest()->getMethod();
         $result = $event->getControllerResult();
         $route = $event->getRequest()->attributes->get('_route');
 
+        $type = explode("\\", get_class($result));
+        $type = $this->inflector->pluralize($this->inflector->tableize(end($type)));
+
         // Only do somthing if we are on te log route and the entity is logable
         if($this->params->get('app_notification') == 'true'){
             $notification = [];
-            $notification['topic'] = $this->params->get('app_name');
+            $notification['topic'] = "{$this->params->get('app_name')}/$type";
             switch ($method){
                 case 'POST':
                     $notification['action'] = 'Create';
-                    $notification['resource'] = "{$event->getRequest()->getUri()}/{$result->getId()}";
                     break;
                 case 'PUT':
                     $notification['action'] = 'Update';
-                    $notification['resource'] = $event->getRequest()->getUri();
                     break;
                 case 'DELETE':
                     $notification['action'] = 'Delete';
-                    $notification['resource'] = $event->getRequest()->getUri();
                     break;
                 default:
                     return;
             }
 
+            $notification['resource'] = "{$this->params->get('app_url')}/$type/{$result->getId()}";
             $this->commonGroundService->createResource($notification, ['component' => 'nrc', 'type' => 'notifications']);
-
         }
     }
 }
