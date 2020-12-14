@@ -79,7 +79,7 @@ class ResourceSubscriber implements EventSubscriberInterface
                 $notification['resource'] = "{$this->params->get('app_url')}/$type/$id";
             }
 
-            $this->commonGroundService->createResource($notification, ['component' => 'nrc', 'type' => 'notifications']);
+            $this->commonGroundService->createResource($notification, ['component' => 'nrc', 'type' => 'notifications'], false, true, false);
         }
     }
 }
