@@ -453,7 +453,7 @@ class VrcService
             } else {
 
                 $post = ['url'=>$request['order']];
-                $invoice = $this->commonGroundService->saveResource($post, ['component' => 'bc', 'type' => 'invoices']);
+                $invoice = $this->commonGroundService->saveResource($post, ['component' => 'bc', 'type' => 'order']);
             }
         }
 
