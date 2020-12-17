@@ -67,23 +67,11 @@ class CommongroundProvider implements UserProviderInterface
             if (!isset($user['roles'])) {
                 $user['roles'] = [];
             }
-            array_push($user['roles'], 'scope.vrc.requests.read');
-            array_push($user['roles'], 'scope.orc.orders.read');
-            array_push($user['roles'], 'scope.cmc.messages.read');
-            array_push($user['roles'], 'scope.bc.invoices.read');
-            array_push($user['roles'], 'scope.arc.events.read');
-            array_push($user['roles'], 'scope.irc.assents.read');
         } elseif ($type == 'person') {
             $user = $this->commonGroundService->getResource($person);
             if (!isset($user['roles'])) {
                 $user['roles'] = [];
             }
-            array_push($user['roles'], 'scope.vrc.requests.read');
-            array_push($user['roles'], 'scope.orc.orders.read');
-            array_push($user['roles'], 'scope.cmc.messages.read');
-            array_push($user['roles'], 'scope.bc.invoices.read');
-            array_push($user['roles'], 'scope.arc.events.read');
-            array_push($user['roles'], 'scope.irc.assents.read');
         } elseif ($type == 'user') {
             $users = $this->commonGroundService->getResourceList(['component'=>'uc', 'type'=>'users'], ['username'=> $username], true);
             $users = $users['hydra:member'];
@@ -97,7 +85,6 @@ class CommongroundProvider implements UserProviderInterface
             if (!isset($user['roles'])) {
                 $user['roles'] = [];
             }
-            array_push($user['roles'], 'scope.chin.checkins.read');
         } elseif ($type == 'facebook') {
             $provider = $this->commonGroundService->getResourceList(['component' => 'uc', 'type' => 'providers'], ['type' => 'facebook', 'application' => $this->params->get('app_id')])['hydra:member'];
             $tokens = $this->commonGroundService->getResourceList(['component' => 'uc', 'type' => 'tokens'], ['token' => $password, 'provider.name' => $provider[0]['name']])['hydra:member'];
@@ -107,7 +94,6 @@ class CommongroundProvider implements UserProviderInterface
             if (!isset($user['roles'])) {
                 $user['roles'] = [];
             }
-            array_push($user['roles'], 'scope.chin.checkins.read');
         } elseif ($type == 'github') {
             $provider = $this->commonGroundService->getResourceList(['component' => 'uc', 'type' => 'providers'], ['type' => 'github', 'application' => $this->params->get('app_id')])['hydra:member'];
             $tokens = $this->commonGroundService->getResourceList(['component' => 'uc', 'type' => 'tokens'], ['token' => $password, 'provider.name' => $provider[0]['name']])['hydra:member'];
@@ -117,7 +103,6 @@ class CommongroundProvider implements UserProviderInterface
             if (!isset($user['roles'])) {
                 $user['roles'] = [];
             }
-            array_push($user['roles'], 'scope.chin.checkins.read');
         } elseif ($type == 'gmail') {
             $provider = $this->commonGroundService->getResourceList(['component' => 'uc', 'type' => 'providers'], ['type' => 'gmail', 'application' => $this->params->get('app_id')])['hydra:member'];
             $tokens = $this->commonGroundService->getResourceList(['component' => 'uc', 'type' => 'tokens'], ['token' => $password, 'provider.name' => $provider[0]['name']])['hydra:member'];
@@ -127,7 +112,6 @@ class CommongroundProvider implements UserProviderInterface
             if (!isset($user['roles'])) {
                 $user['roles'] = [];
             }
-            array_push($user['roles'], 'scope.chin.checkins.read');
         } elseif ($type == 'id-vault') {
             $provider = $this->commonGroundService->getResourceList(['component' => 'uc', 'type' => 'providers'], ['type' => 'id-vault', 'application' => $this->params->get('app_id')])['hydra:member'];
             $tokens = $this->commonGroundService->getResourceList(['component' => 'uc', 'type' => 'tokens'], ['token' => $password, 'provider.name' => $provider[0]['name']])['hydra:member'];
@@ -137,7 +121,6 @@ class CommongroundProvider implements UserProviderInterface
             if (!isset($user['roles'])) {
                 $user['roles'] = [];
             }
-            array_push($user['roles'], 'scope.chin.checkins.read');
         }
 
         if (!isset($user['roles'])) {
@@ -146,6 +129,12 @@ class CommongroundProvider implements UserProviderInterface
 
         if (!in_array('ROLE_USER', $user['roles'])) {
             $user['roles'][] = 'ROLE_USER';
+        }
+
+        foreach ($user['roles'] as $key=>$role) {
+            if (strpos($role, 'ROLE_') !== 0) {
+                $user['roles'][$key] = "ROLE_$role";
+            }
         }
 
         //We create a CommongroundUser based on user type.

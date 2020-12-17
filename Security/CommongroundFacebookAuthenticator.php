@@ -226,7 +226,11 @@ class CommongroundFacebookAuthenticator extends AbstractGuardAuthenticator
         if (!in_array('ROLE_USER', $user['roles'])) {
             $user['roles'][] = 'ROLE_USER';
         }
-        array_push($user['roles'], 'scope.chin.checkins.read');
+        foreach ($user['roles'] as $key=>$role) {
+            if (strpos($role, 'ROLE_') !== 0) {
+                $user['roles'][$key] = "ROLE_$role";
+            }
+        }
 
         if (isset($user['organization'])) {
             return new CommongroundUser($user['username'], $credentials['id'], $person['name'], null, $user['roles'], $user['person'], $user['organization'], 'facebook');
