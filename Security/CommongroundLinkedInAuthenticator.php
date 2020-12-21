@@ -288,7 +288,6 @@ class CommongroundLinkedInAuthenticator extends AbstractGuardAuthenticator
         $this->session->remove('backUrl');
 
         if ($backUrl) {
-
             return new RedirectResponse($backUrl);
         }
         //elseif(isset($application['defaultConfiguration']['configuration']['userPage'])){
