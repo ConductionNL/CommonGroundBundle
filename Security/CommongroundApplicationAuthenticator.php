@@ -11,6 +11,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Jose\Component\Core\AlgorithmManager;
 use Jose\Component\KeyManagement\JWKFactory;
 use Jose\Component\Signature\Algorithm\RS512;
+use Jose\Component\Signature\Algorithm\HS256;
 use Jose\Component\Signature\JWSVerifier;
 use Jose\Component\Signature\Serializer\CompactSerializer;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
@@ -54,6 +55,7 @@ class CommongroundApplicationAuthenticator extends AbstractGuardAuthenticator
     {
         return [
             'token' => $request->headers->get('Authorization'),
+            'method' => $request->getMethod(),
         ];
     }
 
@@ -65,7 +67,7 @@ class CommongroundApplicationAuthenticator extends AbstractGuardAuthenticator
         if ($apiToken != $this->params->get('app_application_key') && $this->params->get('app_auth') != 'true') {
             return;
         }
-        elseif($this->params->get('app_auth') == 'true' && !$this->validateJWT($apiToken)){
+        elseif($this->params->get('app_auth') == 'true' && !$this->validateJWT($apiToken, $credentials['method'])){
             return;
         }
 
@@ -123,7 +125,7 @@ class CommongroundApplicationAuthenticator extends AbstractGuardAuthenticator
         return false;
     }
 
-    public function validateJWT(string $bearer): bool
+    public function validateJWT(string $bearer, string $method): bool
     {
 
         if(strpos($bearer, 'Bearer ') === false){
@@ -134,7 +136,7 @@ class CommongroundApplicationAuthenticator extends AbstractGuardAuthenticator
         $jwsSerializer = new CompactSerializer();
         $jwt = $jwsSerializer->unserialize($jwt);
 
-        $algorithmManager = new AlgorithmManager([new RS512()]);
+        $algorithmManager = new AlgorithmManager([new RS512(), new HS256()]);
 
         $applications = $this->commonGroundService->getResourceList(['component' => 'ac', 'type' => 'applications'])['hydra:member'];
 
@@ -157,8 +159,28 @@ class CommongroundApplicationAuthenticator extends AbstractGuardAuthenticator
         );
 
 
-        if($jwsVerifier->verifyWithKey($jwt, $public, 0) && $creation > $maxAge && $application['hasAllAuthorizations']){
+        if($jwsVerifier->verifyWithKey($jwt, $public, 0) &&
+            $creation > $maxAge &&
+            ($application['hasAllAuthorizations'] || $this->checkAuthorizations($application['authorizations'], $method))
+        ){
             return true;
+        }
+        return false;
+    }
+
+    public function checkAuthorizations(array $authorizations, string $method) :bool
+    {
+        if($method == 'GET'){
+            $requiredMethod = 'read';
+        } else {
+            $requiredMethod = 'write';
+        }
+        foreach($authorizations as $authorization)
+        {
+            if($authorization['component'] == $this->params->get('app_name') && $authorization['scope'] == $requiredMethod)
+            {
+                return true;
+            }
         }
         return false;
     }
