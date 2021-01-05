@@ -230,6 +230,12 @@ class CommonGroundService
         $auth = false;
         $headers = $this->headers;
 
+        /*
+         * Pagination might have been aplied, if so we would like to pass that trough
+         */
+        if($start = $this->request->query->get('start')) $query['start'] = (int) $start;
+        if($limit = $this->request->query->get('limit')) $query['limit'] = (int) $limit;
+
         $query = $this->convertQuery($query);
 
         // Component specific congiguration
@@ -245,12 +251,6 @@ class CommonGroundService
                     $auth = [$component['username'], $component['password']];
             }
         }
-
-        /*
-         * Pagination might have been aplied, if so we would like to pass that trough
-         */
-        if($start = $this->request->query->get('start')) $query['start'] = (int) $start;
-        if($limit = $this->request->query->get('limit')) $query['limit'] = (int) $limit;
 
         /*
          * The we get up to actually getting the data
@@ -1275,6 +1275,10 @@ class CommonGroundService
     public function setHeader($key, $value)
     {
         $this->headers[$key] = $value;
+    }
+
+    public function getHeader($key){
+        return $this->headers[$key];
     }
 
     /**
