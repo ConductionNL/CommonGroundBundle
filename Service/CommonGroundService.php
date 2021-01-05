@@ -18,7 +18,7 @@ use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 // Events
 use Symfony\Component\HttpKernel\Exception\HttpException;
-use Symfony\Component\Translation\TranslatorInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 class CommonGroundService
 {
@@ -246,6 +246,16 @@ class CommonGroundService
             }
         }
 
+        /*
+         * Pagination might have been aplied, if so we would like to pass that trough
+         */
+        if($start = $this->request->query->get('start')) $query['start'] = (int) $start;
+        if($limit = $this->request->query->get('limit')) $query['limit'] = (int) $limit;
+
+        /*
+         * The we get up to actually getting the data
+         */
+
         if (!$async) {
             try {
                 $response = $this->client->request('GET', $url, [
@@ -382,7 +392,6 @@ class CommonGroundService
                     $auth = [$component['username'], $component['password']];
             }
         }
-
         if (!$async) {
             try {
                 $response = $this->client->request('GET', $url, [
@@ -1102,11 +1111,13 @@ class CommonGroundService
                 ($this->params->get('app_subpath_routing') && $this->params->get('app_subpath_routing') !== 'false') &&
                 (!$this->params->get('app_internal') || $this->params->get('app_internal') === 'false')
             ) {
-                $path = explode('/', $parsedUrl['path']);
-                //@TODO this should be more dynamic
-                $path = array_slice($path, 0, 4);
-                $path = implode('/', $path);
-                $object['@id'] = $parsedUrl['scheme'].'://'.$parsedUrl['host'].$path.$object['@id'];
+                $component = $this->getComponentFromUrl($parsedUrl);
+                if(strpos($component, 'http') !== false){
+                    $componentUrl = $component;
+                } else {
+                    $componentUrl = $this->cleanUrl(['component' => $component]);
+                }
+                $object['@id'] = $componentUrl.$object['@id'];
             } else {
                 $object['@id'] = $parsedUrl['scheme'].'://'.$parsedUrl['host'].$object['@id'];
             }
@@ -1118,6 +1129,32 @@ class CommonGroundService
         }
 
         return $object;
+    }
+
+    private function getComponentFromUrl(array $parsedUrl): string
+    {
+        $path = explode('/',$parsedUrl['path']);
+        $apiKey = array_search('api', $path);
+        $versionKey = array_search('v1', $path);
+        if($apiKey && $versionKey && count($path) > $versionKey + 1)
+        {
+            $component = $path[$versionKey + 1];
+        } else {
+            $component = explode('.', $parsedUrl['host'])[0];
+        }
+        if(
+            $parsedUrl['host'] != $this->params->get('app_domain') &&
+            $parsedUrl['host'] != "{$this->params->get('app_env')}.{$this->params->get('app_domain')}" &&
+            $parsedUrl['host'] != "$component.{$this->params->get('app_env')}.{$this->params->get('app_domain')}"
+        ){
+            if(strpos($component, $parsedUrl['host']) !== false){
+                return $parsedUrl['host'];
+            } else {
+                return "{$parsedUrl['scheme']}://{$parsedUrl['host']}/api/v1/$component";
+            }
+        }
+
+        return $component;
     }
 
     /**

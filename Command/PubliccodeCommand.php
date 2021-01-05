@@ -5,7 +5,6 @@
 namespace Conduction\CommonGroundBundle\Command;
 
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Exception\InvalidOptionException;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -35,7 +34,7 @@ class PubliccodeCommand extends Command
 
         // the full command description shown when running the command with
         // the "--help" option
-        ->setHelp('see ehttps://github.com/italia/publiccode.yml')
+        ->setHelp('see https://github.com/italia/publiccode.yml')
         ->setDescription('Publiccode.yml is a metadata standard for repositories containing software developed or acquired by the Public Administration, aimed at making them easily discoverabile and thus reusable by other entities.By including a publiccode.yml file in the root of a repository, and populating it with information about the software, technicians and civil servants can evaluate it. Automatic indexing tools can also be built, since the format is easily readable by both humans and machines.')
         ->addOption('location', null, InputOption::VALUE_OPTIONAL, 'Write output to files in the given location', '/srv/api/public/schema/')
         ->addOption('spec-version', null, InputOption::VALUE_OPTIONAL, 'Publiccode version to use ("0.1.0")', '0.1.0');
@@ -64,8 +63,10 @@ class PubliccodeCommand extends Command
             $output->writeln([
                 'Publiccode Chart',
                 '============',
-                $chart,
+                $publiccode,
             ]);
         }
+
+        return 0;
     }
 }

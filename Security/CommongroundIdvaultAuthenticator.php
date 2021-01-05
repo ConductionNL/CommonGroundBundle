@@ -80,7 +80,7 @@ class CommongroundIdvaultAuthenticator extends AbstractGuardAuthenticator
             'headers'  => ['Content-Type' => 'application/json', 'Accept' => 'application/json'],
             'base_uri' => 'https://id-vault.com',
             // You can set any number of default request options.
-            'timeout'  => 2.0,
+            'timeout'  => 5.0,
         ]);
 
         $response = $client->request('POST', '/api/access_tokens', [

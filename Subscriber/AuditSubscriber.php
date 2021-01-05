@@ -12,7 +12,7 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\Session;
-use Symfony\Component\HttpKernel\Event\GetResponseForControllerResultEvent;
+use Symfony\Component\HttpKernel\Event\ViewEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\Serializer\SerializerInterface;
 
@@ -38,7 +38,7 @@ class AuditSubscriber implements EventSubscriberInterface
         ];
     }
 
-    public function LogRequest(GetResponseForControllerResultEvent $event)
+    public function LogRequest(ViewEvent $event)
     {
         $result = $event->getControllerResult();
         $request = $event->getRequest();
@@ -84,7 +84,7 @@ class AuditSubscriber implements EventSubscriberInterface
         //$log->setOk($responce->isOk());
 
         $this->em->persist($log);
-        $this->em->flush($log);
+        $this->em->flush();
 
         // $authorization = $this->params->get('nlx.components.authorization.');
         // We need to do serveral things for  nlx
