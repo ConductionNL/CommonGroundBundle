@@ -862,7 +862,7 @@ class CommonGroundService
                 if ($messages) {
                     $this->throwMessage('success', $resource, 'created');
                 }
-            } elseif($messages && $errorMessages) {
+            } elseif ($messages && $errorMessages) {
                 $this->throwMessage('error', $resource, 'could not be created');
             }
         }
@@ -1137,16 +1137,15 @@ class CommonGroundService
             foreach ($query as $parameter => $value) {
                 // Lets catch array in the querry (http technically they are aloowd 1 deep)
                 $arryIterator = 0;
-                if(is_array($value)){
+                if (is_array($value)) {
                     foreach ($value as  $arryValue) {
-                        $queryString .= $parameter."[]=".$arryValue;
+                        $queryString .= $parameter.'[]='.$arryValue;
                         $arryIterator++;
                         if ($arryIterator < count($value)) {
                             $queryString .= '&';
                         }
                     }
-                }
-                else{
+                } else {
                     $queryString .= "$parameter=$value";
                 }
 
