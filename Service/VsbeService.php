@@ -108,8 +108,7 @@ class VsbeService
             $vsbeResource = [];
             $vsbeResource['object'] = $resource['@id'];
             $vsbeResource['action'] = 'UPDATE';
-
-            $this->commonGroundService->createResource($vsbeResource, ['component'=>'vsbe', 'type'=>'results']);
+            exec(dirname(__FILE__, 5)."/bin/console app:vsbe:start {$vsbeResource['object']} {$vsbeResource['action']} > /dev/null &");
         }
 
         return $resource;
@@ -142,8 +141,7 @@ class VsbeService
             $vsbeResource = [];
             $vsbeResource['object'] = $resource['@id'];
             $vsbeResource['action'] = 'CREATE';
-
-            $this->commonGroundService->createResource($vsbeResource, ['component'=>'vsbe', 'type'=>'results']);
+            exec(dirname(__FILE__, 5)."/bin/console app:vsbe:start {$vsbeResource['object']} {$vsbeResource['action']} > /dev/null &");
         }
 
         return $resource;

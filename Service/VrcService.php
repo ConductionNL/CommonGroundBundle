@@ -102,7 +102,7 @@ class VrcService
     public function createCommongroundResources($request)
     {
         // If we don't have any properties then there is no need to create resources
-        if (!array_key_exists('properties', $request)) {
+        if (!array_key_exists('properties', $request) || $request['properties'] === null) {
             return $request;
         }
 
@@ -366,8 +366,8 @@ class VrcService
                     $order['customer'] = $request['submitters'][0]['person'];
                 }
             } else {
-                /* @todo use the user */
-                //$order['customer'] = $request['submmiters'];
+                /* @todo elseif to use the user */
+                $order['customer'] = $request['organization'];
             }
 
             $order = $this->commonGroundService->saveResource($order, ['component' => 'orc', 'type' => 'orders']);

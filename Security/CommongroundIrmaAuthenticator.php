@@ -9,7 +9,6 @@
 
 namespace Conduction\CommonGroundBundle\Security;
 
-use Conduction\CommonGroundBundle\Entity\LoginLog;
 use Conduction\CommonGroundBundle\Security\User\CommongroundUser;
 use Conduction\CommonGroundBundle\Service\CommonGroundService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -129,7 +128,6 @@ class CommongroundIrmaAuthenticator extends AbstractGuardAuthenticator
                 $user['username'] = $credentials['username'];
                 $user['password'] = $credentials['id'];
                 $user['person'] = $person['@id'];
-                $user['organization'] = $application;
                 $user = $this->commonGroundService->createResource($user, ['component' => 'uc', 'type' => 'users']);
             } else {
                 $user = $users[0];
@@ -152,19 +150,24 @@ class CommongroundIrmaAuthenticator extends AbstractGuardAuthenticator
 
         $person = $this->commonGroundService->getResource($user['person']);
 
-        $log = new LoginLog();
-        $log->setAddress($_SERVER['REMOTE_ADDR']);
-        $log->setMethod('Irma');
-        $log->setStatus('200');
-        $this->em->persist($log);
-        $this->em->flush($log);
+        $log = [];
+        $log['address'] = $_SERVER['REMOTE_ADDR'];
+        $log['method'] = 'Irma';
+        $log['status'] = '200';
+        $log['application'] = $application;
+
+        $this->commonGroundService->saveResource($log, ['component' => 'uc', 'type' => 'login_logs']);
 
         if (!in_array('ROLE_USER', $user['roles'])) {
             $user['roles'][] = 'ROLE_USER';
         }
         array_push($user['roles'], 'scope.chin.checkins.read');
 
-        return new CommongroundUser($user['username'], $credentials['id'], $credentials['name'], null, $user['roles'], $user['person'], null, 'irma');
+        if (isset($user['organization'])) {
+            return new CommongroundUser($user['username'], $user['username'], $person['name'], null, $user['roles'], $user['person'], $user['organization'], 'idin');
+        } else {
+            return new CommongroundUser($user['username'], $user['username'], $person['name'], null, $user['roles'], $user['person'], null, 'idin');
+        }
     }
 
     public function checkCredentials($credentials, UserInterface $user)

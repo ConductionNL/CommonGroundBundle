@@ -5,7 +5,6 @@
 namespace Conduction\CommonGroundBundle\Security\User;
 
 use Conduction\CommonGroundBundle\Service\CommonGroundService;
-use GuzzleHttp\Client;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
@@ -44,8 +43,9 @@ class CommongroundProvider implements UserProviderInterface
         $organization = $user->getOrganization();
         $type = $user->getType();
         $person = $user->getPerson();
+        $authorization = $user->getAuthorization();
 
-        return $this->fetchUser($username, $password, $organization, $type, $person);
+        return $this->fetchUser($username, $password, $organization, $type, $person, $authorization);
     }
 
     public function supportsClass($class)
@@ -53,44 +53,19 @@ class CommongroundProvider implements UserProviderInterface
         return CommongroundUser::class === $class;
     }
 
-    private function fetchUser($username, $password, $organization, $type, $person)
+    private function fetchUser($username, $password, $organization, $type, $person, $authorization)
     {
         //only trigger if type of user is organization
         $application = $this->commonGroundService->cleanUrl(['component'=>'wrc', 'type'=>'applications', 'id'=>$this->params->get('app_id')]);
         if ($type == 'organization') {
-            $client = new Client([
-                // Base URI is used with relative requests
-                'base_uri' => 'https://api.kvk.nl',
-                // You can set any number of default request options.
-                'timeout'  => 2.0,
-            ]);
-            $response = $client->request('GET', '/api/v2/testsearch/companies?q=test&mainBranch=true&branch=false&branchNumber='.$organization);
-            $companies = json_decode($response->getBody()->getContents(), true);
-            if (!$companies || count($companies) < 1) {
+            try {
+                $kvk = $this->commonGroundService->getResource(['component'=>'kvk', 'type'=>'companies', 'id'=>$organization]);
+            } catch (\HttpException $e) {
                 return;
             }
-            $kvk = $companies['data']['items'][0];
             $user = $this->commonGroundService->getResource($person);
-            if (!isset($user['roles'])) {
-                $user['roles'] = [];
-            }
-            array_push($user['roles'], 'scope.vrc.requests.read');
-            array_push($user['roles'], 'scope.orc.orders.read');
-            array_push($user['roles'], 'scope.cmc.messages.read');
-            array_push($user['roles'], 'scope.bc.invoices.read');
-            array_push($user['roles'], 'scope.arc.events.read');
-            array_push($user['roles'], 'scope.irc.assents.read');
         } elseif ($type == 'person') {
             $user = $this->commonGroundService->getResource($person);
-            if (!isset($user['roles'])) {
-                $user['roles'] = [];
-            }
-            array_push($user['roles'], 'scope.vrc.requests.read');
-            array_push($user['roles'], 'scope.orc.orders.read');
-            array_push($user['roles'], 'scope.cmc.messages.read');
-            array_push($user['roles'], 'scope.bc.invoices.read');
-            array_push($user['roles'], 'scope.arc.events.read');
-            array_push($user['roles'], 'scope.irc.assents.read');
         } elseif ($type == 'user') {
             $users = $this->commonGroundService->getResourceList(['component'=>'uc', 'type'=>'users'], ['username'=> $username], true);
             $users = $users['hydra:member'];
@@ -101,30 +76,36 @@ class CommongroundProvider implements UserProviderInterface
             // Deze $urls zijn een hotfix voor niet werkende @id's op de cgb cgs
             $userUlr = $this->commonGroundService->cleanUrl(['component'=>'uc', 'type'=>'users', 'id'=>$tokens[0]['user']['id']]);
             $user = $this->commonGroundService->getResource($userUlr);
-            if (!isset($user['roles'])) {
-                $user['roles'] = [];
-            }
-            array_push($user['roles'], 'scope.chin.checkins.read');
         } elseif ($type == 'facebook') {
             $provider = $this->commonGroundService->getResourceList(['component' => 'uc', 'type' => 'providers'], ['type' => 'facebook', 'application' => $this->params->get('app_id')])['hydra:member'];
             $tokens = $this->commonGroundService->getResourceList(['component' => 'uc', 'type' => 'tokens'], ['token' => $password, 'provider.name' => $provider[0]['name']])['hydra:member'];
             // Deze $urls zijn een hotfix voor niet werkende @id's op de cgb cgs
             $userUlr = $this->commonGroundService->cleanUrl(['component'=>'uc', 'type'=>'users', 'id'=>$tokens[0]['user']['id']]);
             $user = $this->commonGroundService->getResource($userUlr);
-            if (!isset($user['roles'])) {
-                $user['roles'] = [];
-            }
-            array_push($user['roles'], 'scope.chin.checkins.read');
+        } elseif ($type == 'github') {
+            $provider = $this->commonGroundService->getResourceList(['component' => 'uc', 'type' => 'providers'], ['type' => 'github', 'application' => $this->params->get('app_id')])['hydra:member'];
+            $tokens = $this->commonGroundService->getResourceList(['component' => 'uc', 'type' => 'tokens'], ['token' => $password, 'provider.name' => $provider[0]['name']])['hydra:member'];
+            // Deze $urls zijn een hotfix voor niet werkende @id's op de cgb cgs
+            $userUlr = $this->commonGroundService->cleanUrl(['component'=>'uc', 'type'=>'users', 'id'=>$tokens[0]['user']['id']]);
+            $user = $this->commonGroundService->getResource($userUlr);
         } elseif ($type == 'gmail') {
             $provider = $this->commonGroundService->getResourceList(['component' => 'uc', 'type' => 'providers'], ['type' => 'gmail', 'application' => $this->params->get('app_id')])['hydra:member'];
             $tokens = $this->commonGroundService->getResourceList(['component' => 'uc', 'type' => 'tokens'], ['token' => $password, 'provider.name' => $provider[0]['name']])['hydra:member'];
             // Deze $urls zijn een hotfix voor niet werkende @id's op de cgb cgs
             $userUlr = $this->commonGroundService->cleanUrl(['component'=>'uc', 'type'=>'users', 'id'=>$tokens[0]['user']['id']]);
             $user = $this->commonGroundService->getResource($userUlr);
-            if (!isset($user['roles'])) {
-                $user['roles'] = [];
-            }
-            array_push($user['roles'], 'scope.chin.checkins.read');
+        } elseif ($type == 'id-vault') {
+            $provider = $this->commonGroundService->getResourceList(['component' => 'uc', 'type' => 'providers'], ['type' => 'id-vault', 'application' => $this->params->get('app_id')])['hydra:member'];
+            $tokens = $this->commonGroundService->getResourceList(['component' => 'uc', 'type' => 'tokens'], ['token' => $password, 'provider.name' => $provider[0]['name']])['hydra:member'];
+            // Deze $urls zijn een hotfix voor niet werkende @id's op de cgb cgs
+            $userUlr = $this->commonGroundService->cleanUrl(['component'=>'uc', 'type'=>'users', 'id'=>$tokens[0]['user']['id']]);
+            $user = $this->commonGroundService->getResource($userUlr);
+        } elseif ($type == 'linkedIn') {
+            $provider = $this->commonGroundService->getResourceList(['component' => 'uc', 'type' => 'providers'], ['type' => 'linkedIn', 'application' => $this->params->get('app_id')])['hydra:member'];
+            $tokens = $this->commonGroundService->getResourceList(['component' => 'uc', 'type' => 'tokens'], ['token' => $password, 'provider.name' => $provider[0]['name']])['hydra:member'];
+            // Deze $urls zijn een hotfix voor niet werkende @id's op de cgb cgs
+            $userUlr = $this->commonGroundService->cleanUrl(['component'=>'uc', 'type'=>'users', 'id'=>$tokens[0]['user']['id']]);
+            $user = $this->commonGroundService->getResource($userUlr);
         }
 
         if (!isset($user['roles'])) {
@@ -133,6 +114,12 @@ class CommongroundProvider implements UserProviderInterface
 
         if (!in_array('ROLE_USER', $user['roles'])) {
             $user['roles'][] = 'ROLE_USER';
+        }
+
+        foreach ($user['roles'] as $key=>$role) {
+            if (strpos($role, 'ROLE_') !== 0) {
+                $user['roles'][$key] = "ROLE_$role";
+            }
         }
 
         //We create a CommongroundUser based on user type.
@@ -144,26 +131,64 @@ class CommongroundProvider implements UserProviderInterface
             case 'organization':
                 $resident = $this->checkResidence('organization', $user, $kvk);
 
-                return new CommongroundUser($kvk['tradeNames']['businessName'], $user['id'], $kvk['tradeNames']['businessName'], null, $user['roles'], $user['@id'], $kvk['branchNumber'], 'organization', $resident);
+                return new CommongroundUser($kvk['name'], $user['id'], $kvk['name'], null, $user['roles'], $user['@id'], $kvk['id'], 'organization', $resident);
             case 'user':
                 if (empty($user['person'])) {
                     throw new \Exception('This user has no person. ID: '.$user['id']);
                 }
                 $person = $this->commonGroundService->getResource($user['person']);
 
-                return new CommongroundUser($user['username'], $user['id'], $person['name'], null, $user['roles'], $user['person'], $user['organization'], 'user');
+                if (isset($user['organization'])) {
+                    return new CommongroundUser($user['username'], $user['id'], $person['name'], null, $user['roles'], $user['person'], $user['organization'], 'user');
+                } else {
+                    return new CommongroundUser($user['username'], $user['id'], $person['name'], null, $user['roles'], $user['person'], null, 'user');
+                }
             case 'idin':
                 $person = $this->commonGroundService->getResource($user['person']);
 
-                return new CommongroundUser($user['username'], $user['username'], $person['name'], null, $user['roles'], $user['person'], null, 'idin');
+                if (isset($user['organization'])) {
+                    return new CommongroundUser($user['username'], $password, $person['name'], null, $user['roles'], $user['person'], $user['organization'], 'idin');
+                } else {
+                    return new CommongroundUser($user['username'], $password, $person['name'], null, $user['roles'], $user['person'], null, 'idin');
+                }
             case 'facebook':
                 $person = $this->commonGroundService->getResource($user['person']);
 
-                return new CommongroundUser($user['username'], $password, $person['name'], null, $user['roles'], $user['person'], null, 'facebook');
+                if (isset($user['organization'])) {
+                    return new CommongroundUser($user['username'], $password, $person['name'], null, $user['roles'], $user['person'], $user['organization'], 'facebook');
+                } else {
+                    return new CommongroundUser($user['username'], $password, $person['name'], null, $user['roles'], $user['person'], null, 'facebook');
+                }
             case 'gmail':
                 $person = $this->commonGroundService->getResource($user['person']);
 
-                return new CommongroundUser($user['username'], $password, $person['name'], null, $user['roles'], $user['person'], null, 'gmail');
+                if (isset($user['organization'])) {
+                    return new CommongroundUser($user['username'], $password, $person['name'], null, $user['roles'], $user['person'], $user['organization'], 'gmail');
+                } else {
+                    return new CommongroundUser($user['username'], $password, $person['name'], null, $user['roles'], $user['person'], null, 'gmail');
+                }
+            case 'github':
+                $person = $this->commonGroundService->getResource($user['person']);
+
+                if (isset($user['organization'])) {
+                    return new CommongroundUser($user['username'], $password, $person['name'], null, $user['roles'], $user['person'], $user['organization'], 'github');
+                } else {
+                    return new CommongroundUser($user['username'], $password, $person['name'], null, $user['roles'], $user['person'], null, 'github');
+                }
+            case 'id-vault':
+                $person = $this->commonGroundService->getResource($user['person']);
+                if (isset($user['organization'])) {
+                    return new CommongroundUser($user['username'], $password, $person['name'], null, $user['roles'], $user['person'], $user['organization'], 'id-vault', false, $authorization);
+                } else {
+                    return new CommongroundUser($user['username'], $password, $person['name'], null, $user['roles'], $user['person'], null, 'id-vault', false, $authorization);
+                }
+            case 'linkedIn':
+                $person = $this->commonGroundService->getResource($user['person']);
+                if (isset($user['organization'])) {
+                    return new CommongroundUser($user['username'], $password, $person['name'], null, $user['roles'], $user['person'], $user['organization'], 'linkedIn', false);
+                } else {
+                    return new CommongroundUser($user['username'], $password, $person['name'], null, $user['roles'], $user['person'], null, 'linkedIn', false);
+                }
             default:
                 throw new UsernameNotFoundException(
                     sprintf('User "%s" does not exist.', $username)

@@ -9,7 +9,6 @@
 
 namespace Conduction\CommonGroundBundle\Security;
 
-use Conduction\CommonGroundBundle\Entity\LoginLog;
 use Conduction\CommonGroundBundle\Security\User\CommongroundUser;
 use Conduction\CommonGroundBundle\Service\CommonGroundService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -163,10 +162,33 @@ class CommongroundGmailAuthenticator extends AbstractGuardAuthenticator
                 $user['username'] = $credentials['username'];
                 $user['password'] = $credentials['id'];
                 $user['person'] = $person['@id'];
-                $user['organization'] = $application;
                 $user = $this->commonGroundService->createResource($user, ['component' => 'uc', 'type' => 'users']);
             } else {
                 $user = $users[0];
+
+                if (isset($user['person'])) {
+                    try {
+                        $person = $this->commonGroundService->getResource($user['person']);
+                    } catch (\Throwable $e) {
+                        $person = [];
+                        $person['givenName'] = $credentials['givenName'];
+                        $person['familyName'] = $credentials['familyName'];
+
+                        $person = $this->commonGroundService->createResource($person, ['component' => 'cc', 'type' => 'people']);
+                        $user['person'] = $this->commonGroundService->cleanUrl(['component' => 'cc', 'type' => 'people', 'id' => $person['id']]);
+
+                        $user = $this->commonGroundService->updateResource($user);
+                    }
+                } else {
+                    $person = [];
+                    $person['givenName'] = $credentials['givenName'];
+                    $person['familyName'] = $credentials['familyName'];
+
+                    $person = $this->commonGroundService->createResource($person, ['component' => 'cc', 'type' => 'people']);
+                    $user['person'] = $this->commonGroundService->cleanUrl(['component' => 'cc', 'type' => 'people', 'id' => $person['id']]);
+
+                    $user = $this->commonGroundService->updateResource($user);
+                }
             }
 
             //create token
@@ -182,23 +204,56 @@ class CommongroundGmailAuthenticator extends AbstractGuardAuthenticator
             // Deze $urls zijn een hotfix voor niet werkende @id's op de cgb cgs
             $userUlr = $this->commonGroundService->cleanUrl(['component'=>'uc', 'type'=>'users', 'id'=>$token['user']['id']]);
             $user = $this->commonGroundService->getResource($userUlr);
+
+            if (isset($user['person'])) {
+                try {
+                    $person = $this->commonGroundService->getResource($user['person']);
+                } catch (\Throwable $e) {
+                    $person = [];
+                    $person['givenName'] = $credentials['givenName'];
+                    $person['familyName'] = $credentials['familyName'];
+
+                    $person = $this->commonGroundService->createResource($person, ['component' => 'cc', 'type' => 'people']);
+                    $user['person'] = $this->commonGroundService->cleanUrl(['component' => 'cc', 'type' => 'people', 'id' => $person['id']]);
+
+                    $user = $this->commonGroundService->updateResource($user);
+                }
+            } else {
+                $person = [];
+                $person['givenName'] = $credentials['givenName'];
+                $person['familyName'] = $credentials['familyName'];
+
+                $person = $this->commonGroundService->createResource($person, ['component' => 'cc', 'type' => 'people']);
+                $user['person'] = $this->commonGroundService->cleanUrl(['component' => 'cc', 'type' => 'people', 'id' => $person['id']]);
+
+                $user = $this->commonGroundService->updateResource($user);
+            }
         }
 
         $person = $this->commonGroundService->getResource($user['person']);
 
-        $log = new LoginLog();
-        $log->setAddress($_SERVER['REMOTE_ADDR']);
-        $log->setMethod('Google');
-        $log->setStatus('200');
-        $this->em->persist($log);
-        $this->em->flush($log);
+        $log = [];
+        $log['address'] = $_SERVER['REMOTE_ADDR'];
+        $log['method'] = 'Gmail';
+        $log['status'] = '200';
+        $log['application'] = $application;
+
+        $this->commonGroundService->saveResource($log, ['component' => 'uc', 'type' => 'login_logs']);
 
         if (!in_array('ROLE_USER', $user['roles'])) {
             $user['roles'][] = 'ROLE_USER';
         }
-        array_push($user['roles'], 'scope.chin.checkins.read');
+        foreach ($user['roles'] as $key=>$role) {
+            if (strpos($role, 'ROLE_') !== 0) {
+                $user['roles'][$key] = "ROLE_$role";
+            }
+        }
 
-        return new CommongroundUser($user['username'], $credentials['id'], $person['name'], null, $user['roles'], $user['person'], null, 'gmail');
+        if (isset($user['organization'])) {
+            return new CommongroundUser($user['username'], $credentials['id'], $person['name'], null, $user['roles'], $user['person'], $user['organization'], 'gmail');
+        } else {
+            return new CommongroundUser($user['username'], $credentials['id'], $person['name'], null, $user['roles'], $user['person'], null, 'gmail');
+        }
     }
 
     public function checkCredentials($credentials, UserInterface $user)
@@ -218,6 +273,9 @@ class CommongroundGmailAuthenticator extends AbstractGuardAuthenticator
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, $providerKey)
     {
         $backUrl = $this->session->get('backUrl', false);
+
+        $this->session->remove('backUrl');
+
         if ($backUrl) {
             $this->session->set('checkingProvider', 'gmail');
 

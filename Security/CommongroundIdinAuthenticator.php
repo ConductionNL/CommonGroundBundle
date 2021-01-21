@@ -9,7 +9,6 @@
 
 namespace Conduction\CommonGroundBundle\Security;
 
-use Conduction\CommonGroundBundle\Entity\LoginLog;
 use Conduction\CommonGroundBundle\Security\User\CommongroundUser;
 use Conduction\CommonGroundBundle\Service\CommonGroundService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -165,7 +164,6 @@ class CommongroundIdinAuthenticator extends AbstractGuardAuthenticator
                 $user['username'] = $credentials['username'];
                 $user['password'] = $credentials['username'];
                 $user['person'] = $person['@id'];
-                $user['organization'] = $application;
                 $user = $this->commonGroundService->createResource($user, ['component' => 'uc', 'type' => 'users']);
             } else {
                 $user = $users[0];
@@ -188,19 +186,24 @@ class CommongroundIdinAuthenticator extends AbstractGuardAuthenticator
 
         $person = $this->commonGroundService->getResource($user['person']);
 
-        $log = new LoginLog();
-        $log->setAddress($_SERVER['REMOTE_ADDR']);
-        $log->setMethod('Idin-identity');
-        $log->setStatus('200');
-        $this->em->persist($log);
-        $this->em->flush($log);
+        $log = [];
+        $log['address'] = $_SERVER['REMOTE_ADDR'];
+        $log['method'] = 'Idin-Ident';
+        $log['status'] = '200';
+        $log['application'] = $application;
+
+        $this->commonGroundService->saveResource($log, ['component' => 'uc', 'type' => 'login_logs']);
 
         if (!in_array('ROLE_USER', $user['roles'])) {
             $user['roles'][] = 'ROLE_USER';
         }
         array_push($user['roles'], 'scope.chin.checkins.read');
 
-        return new CommongroundUser($user['username'], $user['username'], $person['name'], null, $user['roles'], $user['person'], null, 'idin');
+        if (isset($user['organization'])) {
+            return new CommongroundUser($user['username'], $user['username'], $person['name'], null, $user['roles'], $user['person'], $user['organization'], 'idin');
+        } else {
+            return new CommongroundUser($user['username'], $user['username'], $person['name'], null, $user['roles'], $user['person'], null, 'idin');
+        }
     }
 
     public function checkCredentials($credentials, UserInterface $user)
@@ -220,6 +223,9 @@ class CommongroundIdinAuthenticator extends AbstractGuardAuthenticator
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, $providerKey)
     {
         $backUrl = $this->session->get('backUrl', false);
+
+        $this->session->remove('backUrl');
+
         if ($backUrl) {
             $this->session->set('checkingProvider', 'idin-identity');
 

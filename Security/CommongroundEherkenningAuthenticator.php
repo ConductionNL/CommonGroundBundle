@@ -89,10 +89,9 @@ class CommongroundEherkenningAuthenticator extends AbstractGuardAuthenticator
             'timeout'  => 2.0,
         ]);
 
-        $response = $client->request('GET', '/api/v2/testsearch/companies?q=test&mainBranch=true&branch=false&branchNumber='.$credentials['kvk']);
-        $companies = json_decode($response->getBody()->getContents(), true);
-
-        if (!$companies['data']['items'] || count($companies['data']['items']) < 1) {
+        try {
+            $kvk = $this->commonGroundService->getResource(['component'=>'kvk', 'type'=>'companies', 'id'=>$credentials['kvk']]);
+        } catch (\HttpException $e) {
             return;
         }
 
@@ -100,7 +99,8 @@ class CommongroundEherkenningAuthenticator extends AbstractGuardAuthenticator
             return;
         }
 
-        $kvk = $companies['data']['items'][0];
+//        $kvk = $companies[0];
+//        $kvk = $companies['data']['items'][0];
         $user = $users[0];
 
         if (!isset($user['roles'])) {
@@ -118,7 +118,7 @@ class CommongroundEherkenningAuthenticator extends AbstractGuardAuthenticator
         array_push($user['roles'], 'scope.arc.events.read');
         array_push($user['roles'], 'scope.irc.assents.read');
 
-        return new CommongroundUser($kvk['tradeNames']['businessName'], $user['id'], $kvk['tradeNames']['businessName'], null, $user['roles'], $user['@id'], $kvk['branchNumber'], 'organization');
+        return new CommongroundUser($kvk['name'], $user['id'], $kvk['name'], null, $user['roles'], $user['@id'], $kvk['id'], 'organization');
     }
 
     public function checkCredentials($credentials, UserInterface $user)
@@ -134,10 +134,9 @@ class CommongroundEherkenningAuthenticator extends AbstractGuardAuthenticator
             'timeout'  => 2.0,
         ]);
 
-        $response = $client->request('GET', '/api/v2/testsearch/companies?q=test&mainBranch=true&branch=false&branchNumber='.$credentials['kvk']);
-        $company = json_decode($response->getBody()->getContents(), true);
-
-        if (!$company['data']['items'] || count($company['data']['items']) < 1) {
+        try {
+            $company = $this->commonGroundService->getResource(['component'=>'kvk', 'type'=>'companies', 'id'=>$credentials['kvk']]);
+        } catch (\HttpException $e) {
             return;
         }
 
@@ -163,10 +162,13 @@ class CommongroundEherkenningAuthenticator extends AbstractGuardAuthenticator
             // You can set any number of default request options.
             'timeout'  => 2.0,
         ]);
+        var_dump($kvk);
 
-        $response = $client->request('GET', '/api/v2/testsearch/companies?q=test&mainBranch=true&branch=false&branchNumber='.$kvk);
-        $companies = json_decode($response->getBody()->getContents(), true);
-        $company = $companies['data']['items'][0];
+        try {
+            $company = $this->commonGroundService->getResource(['component'=>'kvk', 'type'=>'companies', 'id'=>$kvk]);
+        } catch (\HttpException $e) {
+            return;
+        }
 
         $this->session->set('user', $user);
         $this->session->set('organization', $company);

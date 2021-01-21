@@ -16,6 +16,7 @@ use GuzzleHttp\Client;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
@@ -27,7 +28,7 @@ use Symfony\Component\Security\Core\User\UserProviderInterface;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use Symfony\Component\Security\Guard\AbstractGuardAuthenticator;
 
-class CommongroundFacebookAuthenticator extends AbstractGuardAuthenticator
+class CommongroundGithubAuthenticator extends AbstractGuardAuthenticator
 {
     private $em;
     private $params;
@@ -35,8 +36,12 @@ class CommongroundFacebookAuthenticator extends AbstractGuardAuthenticator
     private $csrfTokenManager;
     private $router;
     private $urlGenerator;
+    /**
+     * @var FlashBagInterface
+     */
+    private $flash;
 
-    public function __construct(EntityManagerInterface $em, ParameterBagInterface $params, CommonGroundService $commonGroundService, CsrfTokenManagerInterface $csrfTokenManager, RouterInterface $router, UrlGeneratorInterface $urlGenerator, SessionInterface $session)
+    public function __construct(EntityManagerInterface $em, ParameterBagInterface $params, CommonGroundService $commonGroundService, CsrfTokenManagerInterface $csrfTokenManager, RouterInterface $router, UrlGeneratorInterface $urlGenerator, SessionInterface $session, FlashBagInterface $flash)
     {
         $this->em = $em;
         $this->params = $params;
@@ -45,6 +50,7 @@ class CommongroundFacebookAuthenticator extends AbstractGuardAuthenticator
         $this->router = $router;
         $this->urlGenerator = $urlGenerator;
         $this->session = $session;
+        $this->flash = $flash;
     }
 
     /**
@@ -54,7 +60,7 @@ class CommongroundFacebookAuthenticator extends AbstractGuardAuthenticator
      */
     public function supports(Request $request)
     {
-        return 'app_user_facebook' === $request->attributes->get('_route')
+        return 'app_user_github' === $request->attributes->get('_route')
             && $request->isMethod('GET') && $request->query->get('code');
     }
 
@@ -65,8 +71,9 @@ class CommongroundFacebookAuthenticator extends AbstractGuardAuthenticator
     public function getCredentials(Request $request)
     {
         $code = $request->query->get('code');
+
         $application = $this->commonGroundService->cleanUrl(['component'=>'wrc', 'type'=>'applications', 'id'=>$this->params->get('app_id')]);
-        $providers = $this->commonGroundService->getResourceList(['component' => 'uc', 'type' => 'providers'], ['type' => 'facebook', 'application' => $this->params->get('app_id')])['hydra:member'];
+        $providers = $this->commonGroundService->getResourceList(['component' => 'uc', 'type' => 'providers'], ['type' => 'github', 'application' => $this->params->get('app_id')])['hydra:member'];
         $provider = $providers[0];
 
         $backUrl = $request->query->get('backUrl', false);
@@ -74,28 +81,56 @@ class CommongroundFacebookAuthenticator extends AbstractGuardAuthenticator
             $this->session->set('backUrl', $backUrl);
         }
 
-        $redirect = str_replace('http:', 'https:', $request->getUri());
-        $redirect = substr($redirect, 0, strpos($redirect, '?'));
+        $body = [
+            'client_id'         => $provider['configuration']['app_id'],
+            'client_secret'     => $provider['configuration']['secret'],
+            'code'              => $code,
+        ];
 
         $client = new Client([
             // Base URI is used with relative requests
-            'base_uri' => 'https://graph.facebook.com',
+            'base_uri' => 'https://github.com',
             // You can set any number of default request options.
             'timeout'  => 2.0,
         ]);
 
-        $response = $client->request('GET', '/v8.0/oauth/access_token?client_id='.str_replace('"', '', $provider['configuration']['app_id']).'&redirect_uri='.$redirect.'&client_secret='.$provider['configuration']['secret'].'&code='.$code);
-        $accessToken = json_decode($response->getBody()->getContents(), true);
+        $response = $client->request('POST', '/login/oauth/access_token', [
+            'headers' => [
+                'Accept' => 'application/json',
+            ],
+            'form_params'  => $body,
+        ]);
 
-        $response = $client->request('GET', '/me?&fields=id,name,email&access_token='.$accessToken['access_token']);
+        $token = json_decode($response->getBody()->getContents(), true);
+
+        $headers = [
+            'Authorization' => 'token '.$token['access_token'],
+            'Accept'        => 'application/json',
+        ];
+
+        $client = new Client([
+            // Base URI is used with relative requests
+            'base_uri' => 'https://api.github.com',
+            // You can set any number of default request options.
+            'timeout'  => 2.0,
+        ]);
+
+        $response = $client->request('GET', '/user', [
+            'headers' => $headers,
+        ]);
+
         $user = json_decode($response->getBody()->getContents(), true);
 
         $credentials = [
-            'username'  => $user['email'],
-            'email'     => $user['email'],
-            'name'      => $user['name'],
-            'id'        => $user['id'],
+            'username' => $user['email'],
+            'email'    => $user['email'],
+            'login'    => $user['login'],
+            'id'       => $user['id'],
         ];
+
+        if (isset($user['name'])) {
+            $credentials['name'] = $user['name'];
+        }
 
         $request->getSession()->set(
             Security::LAST_USERNAME,
@@ -108,8 +143,8 @@ class CommongroundFacebookAuthenticator extends AbstractGuardAuthenticator
     public function getUser($credentials, UserProviderInterface $userProvider)
     {
         $application = $this->commonGroundService->cleanUrl(['component'=>'wrc', 'type'=>'applications', 'id'=>$this->params->get('app_id')]);
-        $providers = $this->commonGroundService->getResourceList(['component' => 'uc', 'type' => 'providers'], ['type' => 'facebook', 'application' =>$this->params->get('app_id')])['hydra:member'];
-        $tokens = $this->commonGroundService->getResourceList(['component' => 'uc', 'type' => 'tokens'], ['token' => $credentials['id'], 'provider.name' => $providers[0]['name']])['hydra:member'];
+        $providers = $this->commonGroundService->getResourceList(['component' => 'uc', 'type' => 'providers'], ['type' => 'github', 'application' => $this->params->get('app_id')])['hydra:member'];
+        $tokens = $this->commonGroundService->getResourceList(['component' => 'uc', 'type' => 'tokens'], ['token' => (string) $credentials['id'], 'provider.name' => $providers[0]['name']])['hydra:member'];
 
         if (!$tokens || count($tokens) < 1) {
             $users = $this->commonGroundService->getResourceList(['component'=>'uc', 'type'=>'users'], ['username'=> $credentials['username']], true, false, true, false, false);
@@ -117,11 +152,6 @@ class CommongroundFacebookAuthenticator extends AbstractGuardAuthenticator
 
             // User dosnt exist
             if (count($users) < 1) {
-                if (isset($credentials['telephone'])) {
-                    $telephone = [];
-                    $telephone['name'] = $credentials['telephone'];
-                    $telephone['telephone'] = $credentials['telephone'];
-                }
 
                 //create email
                 $emailObect = [];
@@ -129,21 +159,17 @@ class CommongroundFacebookAuthenticator extends AbstractGuardAuthenticator
                 $emailObect['email'] = $credentials['email'];
 
                 //create person
-                $names = explode(' ', $credentials['name']);
                 $person = [];
-                $person['givenName'] = $names[0];
-                $person['familyName'] = end($names);
+                $name = explode(' ', $credentials['name']);
+                $person['givenName'] = $name[0];
                 $person['emails'] = [$emailObect];
-                if (isset($credentials['telephone'])) {
-                    $person['telephones'] = [$telephone];
-                }
 
                 $person = $this->commonGroundService->createResource($person, ['component' => 'cc', 'type' => 'people']);
 
                 //create user
                 $user = [];
                 $user['username'] = $credentials['username'];
-                $user['password'] = $credentials['id'];
+                $user['password'] = (string) $credentials['id'];
                 $user['person'] = $this->commonGroundService->cleanUrl(['component' => 'cc', 'type' => 'people', 'id' => $person['id']]);
                 $user = $this->commonGroundService->createResource($user, ['component' => 'uc', 'type' => 'users']);
             } else {
@@ -153,9 +179,9 @@ class CommongroundFacebookAuthenticator extends AbstractGuardAuthenticator
                     try {
                         $person = $this->commonGroundService->getResource($user['person']);
                     } catch (\Throwable $e) {
-                        $names = explode(' ', $credentials['name']);
                         $person = [];
-                        $person['givenName'] = $names[0];
+                        $name = explode(' ', $credentials['name']);
+                        $person['givenName'] = $name[0];
 
                         $person = $this->commonGroundService->createResource($person, ['component' => 'cc', 'type' => 'people']);
                         $user['person'] = $this->commonGroundService->cleanUrl(['component' => 'cc', 'type' => 'people', 'id' => $person['id']]);
@@ -163,9 +189,9 @@ class CommongroundFacebookAuthenticator extends AbstractGuardAuthenticator
                         $user = $this->commonGroundService->updateResource($user);
                     }
                 } else {
-                    $names = explode(' ', $credentials['name']);
                     $person = [];
-                    $person['givenName'] = $names[0];
+                    $name = explode(' ', $credentials['name']);
+                    $person['givenName'] = $name[0];
 
                     $person = $this->commonGroundService->createResource($person, ['component' => 'cc', 'type' => 'people']);
                     $user['person'] = $this->commonGroundService->cleanUrl(['component' => 'cc', 'type' => 'people', 'id' => $person['id']]);
@@ -176,12 +202,12 @@ class CommongroundFacebookAuthenticator extends AbstractGuardAuthenticator
 
             //create token
             $token = [];
-            $token['token'] = $credentials['id'];
+            $token['token'] = (string) $credentials['id'];
             $token['user'] = 'users/'.$user['id'];
             $token['provider'] = 'providers/'.$providers[0]['id'];
             $token = $this->commonGroundService->createResource($token, ['component' => 'uc', 'type' => 'tokens']);
 
-            $token = $this->commonGroundService->getResourceList(['component' => 'uc', 'type' => 'tokens'], ['token' => $credentials['id'], 'provider.name' => $providers[0]['name']])['hydra:member'];
+            $token = $this->commonGroundService->getResourceList(['component' => 'uc', 'type' => 'tokens'], ['token' => (string) $credentials['id'], 'provider.name' => $providers[0]['name']])['hydra:member'];
         } else {
             $token = $tokens[0];
             // Deze $urls zijn een hotfix voor niet werkende @id's op de cgb cgs
@@ -192,9 +218,9 @@ class CommongroundFacebookAuthenticator extends AbstractGuardAuthenticator
                 try {
                     $person = $this->commonGroundService->getResource($user['person']);
                 } catch (\Throwable $e) {
-                    $names = explode(' ', $credentials['name']);
                     $person = [];
-                    $person['givenName'] = $names[0];
+                    $name = explode(' ', $credentials['name']);
+                    $person['givenName'] = $name[0];
 
                     $person = $this->commonGroundService->createResource($person, ['component' => 'cc', 'type' => 'people']);
                     $user['person'] = $this->commonGroundService->cleanUrl(['component' => 'cc', 'type' => 'people', 'id' => $person['id']]);
@@ -202,9 +228,9 @@ class CommongroundFacebookAuthenticator extends AbstractGuardAuthenticator
                     $user = $this->commonGroundService->updateResource($user);
                 }
             } else {
-                $names = explode(' ', $credentials['name']);
                 $person = [];
-                $person['givenName'] = $names[0];
+                $name = explode(' ', $credentials['name']);
+                $person['givenName'] = $name[0];
 
                 $person = $this->commonGroundService->createResource($person, ['component' => 'cc', 'type' => 'people']);
                 $user['person'] = $this->commonGroundService->cleanUrl(['component' => 'cc', 'type' => 'people', 'id' => $person['id']]);
@@ -217,7 +243,7 @@ class CommongroundFacebookAuthenticator extends AbstractGuardAuthenticator
 
         $log = [];
         $log['address'] = $_SERVER['REMOTE_ADDR'];
-        $log['method'] = 'Facebook';
+        $log['method'] = 'Github';
         $log['status'] = '200';
         $log['application'] = $application;
 
@@ -233,16 +259,16 @@ class CommongroundFacebookAuthenticator extends AbstractGuardAuthenticator
         }
 
         if (isset($user['organization'])) {
-            return new CommongroundUser($user['username'], $credentials['id'], $person['name'], null, $user['roles'], $user['person'], $user['organization'], 'facebook');
+            return new CommongroundUser($user['username'], $credentials['id'], $person['name'], null, $user['roles'], $user['person'], $user['organization'], 'github');
         } else {
-            return new CommongroundUser($user['username'], $credentials['id'], $person['name'], null, $user['roles'], $user['person'], null, 'facebook');
+            return new CommongroundUser($user['username'], $credentials['id'], $person['name'], null, $user['roles'], $user['person'], null, 'github');
         }
     }
 
     public function checkCredentials($credentials, UserInterface $user)
     {
         $application = $this->commonGroundService->cleanUrl(['component'=>'wrc', 'type'=>'applications', 'id'=>$this->params->get('app_id')]);
-        $providers = $this->commonGroundService->getResourceList(['component' => 'uc', 'type' => 'providers'], ['type' => 'facebook', 'application' => $this->params->get('app_id')])['hydra:member'];
+        $providers = $this->commonGroundService->getResourceList(['component' => 'uc', 'type' => 'providers'], ['type' => 'github', 'application' => $this->params->get('app_id')])['hydra:member'];
         $tokens = $this->commonGroundService->getResourceList(['component' => 'uc', 'type' => 'tokens'], ['token' => $credentials['id'], 'provider.name' => $providers[0]['name']])['hydra:member'];
 
         if (!$tokens || count($tokens) < 1) {
@@ -260,7 +286,7 @@ class CommongroundFacebookAuthenticator extends AbstractGuardAuthenticator
         $this->session->remove('backUrl');
 
         if ($backUrl) {
-            $this->session->set('checkingProvider', 'facebook');
+            $this->session->set('checkingProvider', 'github');
 
             return new RedirectResponse($backUrl);
         }
@@ -274,7 +300,7 @@ class CommongroundFacebookAuthenticator extends AbstractGuardAuthenticator
 
     public function onAuthenticationFailure(Request $request, AuthenticationException $exception)
     {
-        return new RedirectResponse($this->router->generate('app_user_facebook'));
+        return new RedirectResponse($this->router->generate('app_user_github'));
     }
 
     /**

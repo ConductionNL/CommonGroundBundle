@@ -37,12 +37,12 @@
         <service id="Conduction\CommonGroundBundle\Security\CommongroundFacebookAuthenticator" />
         <service id="Conduction\CommonGroundBundle\Security\CommongroundGmailAuthenticator" />
         <service id="Conduction\CommonGroundBundle\Security\CommongroundIrmaAuthenticator" />
+        <service id="Conduction\CommonGroundBundle\Security\CommongroundIdvaultAuthenticator" />
+        <service id="Conduction\CommonGroundBundle\Security\CommongroundGithubAuthenticator" />
+        <service id="Conduction\CommonGroundBundle\Security\CommongroundLinkedInAuthenticator" />
 
         <!--CommonGround Repositories-->
         <service id="Conduction\CommonGroundBundle\Repository\AuditTrailRepository">
-            <tag name="doctrine.repository_service"/>
-        </service>
-        <service id="Conduction\CommonGroundBundle\Repository\LoginLogRepository">
             <tag name="doctrine.repository_service"/>
         </service>
 
@@ -93,6 +93,9 @@
             <tag name="console.command"/>
         </service>
         <service id="Conduction\CommonGroundBundle\Command\PubliccodeCommand">
+            <tag name="console.command"/>
+        </service>
+        <service id="Conduction\CommonGroundBundle\Command\RunVSBECommand">
             <tag name="console.command"/>
         </service>
 

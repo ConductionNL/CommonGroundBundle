@@ -1133,7 +1133,20 @@ class CommonGroundService
             $queryString = '';
             $iterator = 0;
             foreach ($query as $parameter => $value) {
-                $queryString .= "$parameter=$value";
+                // Lets catch array in the querry (http technically they are aloowd 1 deep)
+                $arryIterator = 0;
+                if(is_array($value)){
+                    foreach ($value as  $arryValue) {
+                        $queryString .= $parameter."[]=".$arryValue;
+                        $arryIterator++;
+                        if ($arryIterator < count($value)) {
+                            $queryString .= '&';
+                        }
+                    }
+                }
+                else{
+                    $queryString .= "$parameter=$value";
+                }
 
                 $iterator++;
                 if ($iterator < count($query)) {
@@ -1238,6 +1251,26 @@ class CommonGroundService
     public function setHeader($key, $value)
     {
         $this->headers[$key] = $value;
+    }
+
+    /**
+     * Returns the content of $this->local.
+     *
+     * @return string
+     */
+    public function getLocal()
+    {
+        return $this->local;
+    }
+
+    /**
+     * Overwrites the content of $this->local.
+     *
+     * @param $input
+     */
+    public function setLocal($input)
+    {
+        $this->local = $input;
     }
 
     /*
