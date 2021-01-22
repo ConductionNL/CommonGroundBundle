@@ -807,7 +807,7 @@ class CommonGroundService
     /*
      * The save fucntion should only be used by applications that can render flashes
      */
-    public function saveResource($resource, $endpoint = false, $autowire = true, $events = true, $messages = true, $errorMessages = true)
+    public function saveResource($resource, $endpoint = false, $autowire = true, $events = true, $succesMessages = true, $errorMessages = true)
     {
         // We dont require an endpoint if a resource is self explanatory
         if (is_array($endpoint) && array_key_exists('component', $endpoint)) {
@@ -849,20 +849,20 @@ class CommonGroundService
             if ($this->updateResource($resource, null, false, $autowire, $events)) {
                 // Lets renew the resource
                 $resource = $this->getResource($resource['@id'], [], false, false, $autowire, $events);
-                if ($messages) {
+                if ($succesMessages) {
                     $this->throwMessage('success', $resource, 'saved');
                 }
-            } elseif (array_key_exists('name', $resource) && $messages && $errorMessages) {
+            } elseif (array_key_exists('name', $resource) && $errorMessages) {
                 $this->throwMessage('error', $resource, 'could not be saved');
             }
         } else {
             if ($createdResource = $this->createResource($resource, $endpoint, false, $autowire)) {
                 // Lets renew the resource
                 $resource = $this->getResource($createdResource['@id'], [], false, false, $autowire);
-                if ($messages) {
+                if ($succesMessages) {
                     $this->throwMessage('success', $resource, 'created');
                 }
-            } elseif ($messages && $errorMessages) {
+            } elseif ($errorMessages) {
                 $this->throwMessage('error', $resource, 'could not be created');
             }
         }
