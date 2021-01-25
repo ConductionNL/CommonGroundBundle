@@ -181,7 +181,7 @@ class CommongroundIdvaultAuthenticator extends AbstractGuardAuthenticator
         $log['status'] = '200';
         $log['application'] = $application;
 
-        $this->commonGroundService->saveResource($log, ['component' => 'uc', 'type' => 'login_logs']);
+        $this->commonGroundService->saveResource($log, ['component' => 'uc', 'type' => 'login_logs'], [], [], false, false);
 
         if (!in_array('ROLE_USER', $user['roles'])) {
             $user['roles'][] = 'ROLE_USER';
