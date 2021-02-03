@@ -142,7 +142,6 @@ class CommonGroundService
         $returnUrl = [];
 
         if (!key_exists('scheme', $parsedUrl) || !key_exists('host', $parsedUrl)) {
-
             return false;
         }
 
