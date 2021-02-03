@@ -27,7 +27,7 @@ use Symfony\Component\Security\Core\User\UserProviderInterface;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use Symfony\Component\Security\Guard\AbstractGuardAuthenticator;
 
-class CommongroundIdvaultAuthenticator extends AbstractGuardAuthenticator
+class CommongroundLinkedInAuthenticator extends AbstractGuardAuthenticator
 {
     private $em;
     private $params;
@@ -54,7 +54,7 @@ class CommongroundIdvaultAuthenticator extends AbstractGuardAuthenticator
      */
     public function supports(Request $request)
     {
-        return 'app_user_idvault' === $request->attributes->get('_route')
+        return 'app_user_linkedin' === $request->attributes->get('_route')
             && $request->isMethod('GET') && $request->query->get('code');
     }
 
@@ -67,7 +67,7 @@ class CommongroundIdvaultAuthenticator extends AbstractGuardAuthenticator
         $code = $request->query->get('code');
 
         $application = $this->commonGroundService->cleanUrl(['component'=>'wrc', 'type'=>'applications', 'id'=>$this->params->get('app_id')]);
-        $providers = $this->commonGroundService->getResourceList(['component' => 'uc', 'type' => 'providers'], ['type' => 'id-vault', 'application' => $this->params->get('app_id')])['hydra:member'];
+        $providers = $this->commonGroundService->getResourceList(['component' => 'uc', 'type' => 'providers'], ['type' => 'linkedIn', 'application' => $this->params->get('app_id')])['hydra:member'];
         $provider = $providers[0];
 
         $backUrl = $request->query->get('backUrl', false);
@@ -75,35 +75,63 @@ class CommongroundIdvaultAuthenticator extends AbstractGuardAuthenticator
             $this->session->set('backUrl', $backUrl);
         }
 
+        $redirect = $request->getUri();
+        $redirect = substr($redirect, 0, strpos($redirect, '?'));
+
+        $body = [
+            'client_id'         => $provider['configuration']['app_id'],
+            'client_secret'     => $provider['configuration']['secret'],
+            'redirect_uri'      => $redirect,
+            'code'              => $code,
+            'grant_type'        => 'authorization_code',
+        ];
+
         $client = new Client([
             // Base URI is used with relative requests
-            'headers'  => ['Content-Type' => 'application/json', 'Accept' => 'application/json'],
-            'base_uri' => 'https://id-vault.com',
+            'base_uri' => 'https://www.linkedin.com',
             // You can set any number of default request options.
             'timeout'  => 2.0,
         ]);
 
-        $response = $client->request('POST', '/api/access_tokens', [
-            'json' => [
-                'clientId'          => $provider['configuration']['app_id'],
-                'clientSecret'      => $provider['configuration']['secret'],
-                'code'              => $code,
-                'grantType'         => 'authorization_code',
-            ],
+        $response = $client->request('POST', '/oauth/v2/accessToken', [
+            'form_params'  => $body,
+            'content_type' => 'application/x-www-form-urlencoded',
         ]);
 
         $accessToken = json_decode($response->getBody()->getContents(), true);
 
-        $json = base64_decode(explode('.', $accessToken['accessToken'])[1]);
-        $json = json_decode($json, true);
+        $headers = [
+            'Authorization' => 'Bearer '.$accessToken['access_token'],
+            'Accept'        => 'application/json',
+        ];
+
+        $client = new Client([
+            // Base URI is used with relative requests
+            'base_uri' => 'https://api.linkedin.com',
+            // You can set any number of default request options.
+            'timeout'  => 2.0,
+        ]);
+
+        $response = $client->request('GET', '/v2/me', [
+            'headers' => $headers,
+        ]);
+
+        $json = json_decode($response->getBody()->getContents(), true);
+
+        $response = $client->request('GET', '/v2/emailAddress?q=members&projection=(elements*(handle~))', [
+            'headers' => $headers,
+        ]);
+
+        $email = json_decode($response->getBody()->getContents(), true);
+
+        $email = $email['elements'][0]['handle~']['emailAddress'];
 
         $credentials = [
-            'username'      => $json['email'],
-            'email'         => $json['email'],
-            'givenName'     => $json['given_name'],
-            'familyName'    => $json['family_name'],
-            'id'            => $json['jti'],
-            'authorization' => $accessToken['accessToken'],
+            'username'      => $email,
+            'email'         => $email,
+            'givenName'     => $json['localizedFirstName'],
+            'familyName'    => $json['localizedLastName'],
+            'id'            => $json['id'],
         ];
 
         $request->getSession()->set(
@@ -117,8 +145,8 @@ class CommongroundIdvaultAuthenticator extends AbstractGuardAuthenticator
     public function getUser($credentials, UserProviderInterface $userProvider)
     {
         $application = $this->commonGroundService->cleanUrl(['component'=>'wrc', 'type'=>'applications', 'id'=>$this->params->get('app_id')]);
-        $providers = $this->commonGroundService->getResourceList(['component' => 'uc', 'type' => 'providers'], ['type' => 'id-vault', 'application' => $this->params->get('app_id')])['hydra:member'];
-        $tokens = $this->commonGroundService->getResourceList(['component' => 'uc', 'type' => 'tokens'], ['token' => $credentials['username'], 'provider.name' => $providers[0]['name']])['hydra:member'];
+        $providers = $this->commonGroundService->getResourceList(['component' => 'uc', 'type' => 'providers'], ['type' => 'linkedIn', 'application' => $this->params->get('app_id')])['hydra:member'];
+        $tokens = $this->commonGroundService->getResourceList(['component' => 'uc', 'type' => 'tokens'], ['token' => $credentials['id'], 'provider.name' => $providers[0]['name']])['hydra:member'];
 
         if (!$tokens || count($tokens) < 1) {
             $users = $this->commonGroundService->getResourceList(['component'=>'uc', 'type'=>'users'], ['username'=> $credentials['username']], true, false, true, false, false);
@@ -126,11 +154,6 @@ class CommongroundIdvaultAuthenticator extends AbstractGuardAuthenticator
 
             // User dosnt exist
             if (count($users) < 1) {
-                if (isset($credentials['telephone'])) {
-                    $telephone = [];
-                    $telephone['name'] = $credentials['telephone'];
-                    $telephone['telephone'] = $credentials['telephone'];
-                }
 
                 //create email
                 $emailObect = [];
@@ -142,9 +165,6 @@ class CommongroundIdvaultAuthenticator extends AbstractGuardAuthenticator
                 $person['givenName'] = $credentials['givenName'];
                 $person['familyName'] = $credentials['familyName'];
                 $person['emails'] = [$emailObect];
-                if (isset($credentials['telephone'])) {
-                    $person['telephones'] = [$telephone];
-                }
 
                 $person = $this->commonGroundService->createResource($person, ['component' => 'cc', 'type' => 'people']);
 
@@ -156,28 +176,76 @@ class CommongroundIdvaultAuthenticator extends AbstractGuardAuthenticator
                 $user = $this->commonGroundService->createResource($user, ['component' => 'uc', 'type' => 'users']);
             } else {
                 $user = $users[0];
+
+                if (isset($user['person'])) {
+                    try {
+                        $person = $this->commonGroundService->getResource($user['person']);
+                    } catch (\Throwable $e) {
+                        $person = [];
+                        $person['givenName'] = $credentials['givenName'];
+                        $person['familyName'] = $credentials['familyName'];
+
+                        $person = $this->commonGroundService->createResource($person, ['component' => 'cc', 'type' => 'people']);
+                        $user['person'] = $this->commonGroundService->cleanUrl(['component' => 'cc', 'type' => 'people', 'id' => $person['id']]);
+
+                        $user = $this->commonGroundService->updateResource($user);
+                    }
+                } else {
+                    $person = [];
+                    $person['givenName'] = $credentials['givenName'];
+                    $person['familyName'] = $credentials['familyName'];
+
+                    $person = $this->commonGroundService->createResource($person, ['component' => 'cc', 'type' => 'people']);
+                    $user['person'] = $this->commonGroundService->cleanUrl(['component' => 'cc', 'type' => 'people', 'id' => $person['id']]);
+
+                    $user = $this->commonGroundService->updateResource($user);
+                }
             }
 
             //create token
             $token = [];
-            $token['token'] = $credentials['username'];
+            $token['token'] = $credentials['id'];
             $token['user'] = 'users/'.$user['id'];
             $token['provider'] = 'providers/'.$providers[0]['id'];
             $token = $this->commonGroundService->createResource($token, ['component' => 'uc', 'type' => 'tokens']);
 
-            $token = $this->commonGroundService->getResourceList(['component' => 'uc', 'type' => 'tokens'], ['token' => $credentials['username'], 'provider.name' => $providers[0]['name']])['hydra:member'];
+            $token = $this->commonGroundService->getResourceList(['component' => 'uc', 'type' => 'tokens'], ['token' => $credentials['id'], 'provider.name' => $providers[0]['name']])['hydra:member'];
         } else {
             $token = $tokens[0];
             // Deze $urls zijn een hotfix voor niet werkende @id's op de cgb cgs
             $userUlr = $this->commonGroundService->cleanUrl(['component'=>'uc', 'type'=>'users', 'id'=>$token['user']['id']]);
             $user = $this->commonGroundService->getResource($userUlr);
+
+            if (isset($user['person'])) {
+                try {
+                    $person = $this->commonGroundService->getResource($user['person']);
+                } catch (\Throwable $e) {
+                    $person = [];
+                    $person['givenName'] = $credentials['givenName'];
+                    $person['familyName'] = $credentials['familyName'];
+
+                    $person = $this->commonGroundService->createResource($person, ['component' => 'cc', 'type' => 'people']);
+                    $user['person'] = $this->commonGroundService->cleanUrl(['component' => 'cc', 'type' => 'people', 'id' => $person['id']]);
+
+                    $user = $this->commonGroundService->updateResource($user);
+                }
+            } else {
+                $person = [];
+                $person['givenName'] = $credentials['givenName'];
+                $person['familyName'] = $credentials['familyName'];
+
+                $person = $this->commonGroundService->createResource($person, ['component' => 'cc', 'type' => 'people']);
+                $user['person'] = $this->commonGroundService->cleanUrl(['component' => 'cc', 'type' => 'people', 'id' => $person['id']]);
+
+                $user = $this->commonGroundService->updateResource($user);
+            }
         }
 
         $person = $this->commonGroundService->getResource($user['person']);
 
         $log = [];
         $log['address'] = $_SERVER['REMOTE_ADDR'];
-        $log['method'] = 'Id-Vault';
+        $log['method'] = 'LinkedIn';
         $log['status'] = '200';
         $log['application'] = $application;
 
@@ -193,17 +261,17 @@ class CommongroundIdvaultAuthenticator extends AbstractGuardAuthenticator
         }
 
         if (isset($user['organization'])) {
-            return new CommongroundUser($user['username'], $user['username'], $person['name'], null, $user['roles'], $user['person'], $user['organization'], 'id-vault', false, $credentials['authorization']);
+            return new CommongroundUser($user['username'], $credentials['id'], $person['name'], null, $user['roles'], $user['person'], $user['organization'], 'linkedIn');
         } else {
-            return new CommongroundUser($user['username'], $user['username'], $person['name'], null, $user['roles'], $user['person'], null, 'id-vault', false, $credentials['authorization']);
+            return new CommongroundUser($user['username'], $credentials['id'], $person['name'], null, $user['roles'], $user['person'], null, 'linkedIn');
         }
     }
 
     public function checkCredentials($credentials, UserInterface $user)
     {
         $application = $this->commonGroundService->cleanUrl(['component'=>'wrc', 'type'=>'applications', 'id'=>$this->params->get('app_id')]);
-        $providers = $this->commonGroundService->getResourceList(['component' => 'uc', 'type' => 'providers'], ['type' => 'id-vault', 'application' => $this->params->get('app_id')])['hydra:member'];
-        $tokens = $this->commonGroundService->getResourceList(['component' => 'uc', 'type' => 'tokens'], ['token' => $credentials['username'], 'provider.name' => $providers[0]['name']])['hydra:member'];
+        $providers = $this->commonGroundService->getResourceList(['component' => 'uc', 'type' => 'providers'], ['type' => 'linkedIn', 'application' => $this->params->get('app_id')])['hydra:member'];
+        $tokens = $this->commonGroundService->getResourceList(['component' => 'uc', 'type' => 'tokens'], ['token' => $credentials['id'], 'provider.name' => $providers[0]['name']])['hydra:member'];
 
         if (!$tokens || count($tokens) < 1) {
             return;
@@ -216,9 +284,10 @@ class CommongroundIdvaultAuthenticator extends AbstractGuardAuthenticator
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, $providerKey)
     {
         $backUrl = $this->session->get('backUrl', false);
-        if ($backUrl) {
-            $this->session->set('checkingProvider', 'gmail');
 
+        $this->session->remove('backUrl');
+
+        if ($backUrl) {
             return new RedirectResponse($backUrl);
         }
         //elseif(isset($application['defaultConfiguration']['configuration']['userPage'])){
@@ -231,7 +300,7 @@ class CommongroundIdvaultAuthenticator extends AbstractGuardAuthenticator
 
     public function onAuthenticationFailure(Request $request, AuthenticationException $exception)
     {
-        return new RedirectResponse($this->router->generate('app_user_gmail'));
+        return new RedirectResponse($this->router->generate('app_user_linkedIn'));
     }
 
     /**

@@ -137,6 +137,8 @@ class CommongroundUserAuthenticator extends AbstractGuardAuthenticator
     {
         $backUrl = $this->session->get('backUrl', false);
 
+        $this->session->remove('backUrl');
+
         if ($backUrl) {
             return new RedirectResponse($backUrl);
         } else {
