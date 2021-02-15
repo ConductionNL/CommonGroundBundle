@@ -90,9 +90,7 @@ class CommonGroundService
         $this->headers = [
             'Accept'        => 'application/ld+json',
             'Content-Type'  => 'application/json',
-            'Authorization' => $this->params->get('app_commonground_key'),
-            // NLX
-            'X-NLX-Request-Application-Id' => $this->params->get('app_commonground_id'), // the id of the application performing the request
+            'Authorization' => $this->params->get('app_application_key'),
             // NL Api Strategie
             'Accept-Crs'  => 'EPSG:4326',
             'Content-Crs' => 'EPSG:4326',

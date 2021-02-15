@@ -8,7 +8,6 @@ settings:
   name: {{ app_name }}
   title: {{ app_title }}
   version: {{ app_version }}
-  majorVersion: {{ app_major_version }}
   id: {{ app_id }}
   description: '{{ app_description }}'
   type: {{ app_type }}
@@ -19,12 +18,6 @@ settings:
   subdomain: {{ app_subdomain }}
   subpath: {{ app_subpath }}
   subpathRouting: {{ app_subpath_routing }}
-  organisationName: {{ organization_name }}
-  email: {{ organization_email }}
-  country: {{ organization_country }}
-  state: {{ organization_state }}
-  locality: {{ organization_locality }}
-  unit: {{ organization_unit }}
   env: {{ app_env }}
   web: {{ app_web }}
   debug: {{ app_debug }}
@@ -53,7 +46,6 @@ security:
   commongroundId: "{{ app_commonground_id }}"
   commongroundKey: "{{ app_commonground_key }}"
   applicationKey: "{{  app_application_key }}"
-  userKey: "{{ app_user_key }}"
   authorisationProviderUser: {{ auth_provider_user }}
   authorisationProviderApplication: {{ auth_provider_application }}
 
