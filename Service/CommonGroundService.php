@@ -244,6 +244,11 @@ class CommonGroundService
             }
         }
 
+        if(defined($this->request) && $this->request){
+            if($start = $this->request->query->get('start')) $query['start'] = (int) $start;
+            if($limit = $this->request->query->get('limit')) $query['limit'] = (int) $limit;
+        }
+
         if (!$async) {
             try {
                 $response = $this->client->request('GET', $url, [
