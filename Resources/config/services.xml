@@ -3,8 +3,16 @@
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xsi:schemaLocation="http://symfony.com/schema/dic/services
         https://symfony.com/schema/dic/services/services-1.0.xsd">
+    <imports>
+        <import resource="packages/test.yaml"/>
+    </imports>
+
     <services>
         <defaults autowire="true" autoconfigure="true" />
+
+        <!-- Default Controller -->
+        <service id="conduction_commonground.default_controller" class="Conduction\CommonGroundBundle\Controller\DefaultController" public="true">
+        </service>
 
         <!--CommonGround Services-->
         <service id="Conduction\CommonGroundBundle\Service\ApplicationService" />
@@ -93,6 +101,9 @@
             <tag name="console.command"/>
         </service>
         <service id="Conduction\CommonGroundBundle\Command\PubliccodeCommand">
+            <tag name="console.command"/>
+        </service>
+        <service id="Conduction\CommonGroundBundle\Command\DocumentationCommand">
             <tag name="console.command"/>
         </service>
         <service id="Conduction\CommonGroundBundle\Command\RunVSBECommand">

@@ -90,9 +90,7 @@ class CommonGroundService
         $this->headers = [
             'Accept'        => 'application/ld+json',
             'Content-Type'  => 'application/json',
-            'Authorization' => $this->params->get('app_commonground_key'),
-            // NLX
-            'X-NLX-Request-Application-Id' => $this->params->get('app_commonground_id'), // the id of the application performing the request
+            'Authorization' => $this->params->get('app_application_key'),
             // NL Api Strategie
             'Accept-Crs'  => 'EPSG:4326',
             'Content-Crs' => 'EPSG:4326',
@@ -142,8 +140,6 @@ class CommonGroundService
         $returnUrl = [];
 
         if (!key_exists('scheme', $parsedUrl) || !key_exists('host', $parsedUrl)) {
-            exit;
-
             return false;
         }
 
@@ -254,9 +250,10 @@ class CommonGroundService
             }
         }
 
-        /*
-         * The we get up to actually getting the data
-         */
+        if(defined($this->request) && $this->request){
+            if($start = $this->request->query->get('start')) $query['start'] = (int) $start;
+            if($limit = $this->request->query->get('limit')) $query['limit'] = (int) $limit;
+        }
 
         if (!$async) {
             try {
