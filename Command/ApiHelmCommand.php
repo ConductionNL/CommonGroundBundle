@@ -53,8 +53,8 @@ class ApiHelmCommand extends Command
         //	throw new InvalidOptionException(sprintf('This tool only supports version 2 and 3 of the OpenAPI specification ("%s" given).', $version));
         //}
 
-        $values = $this->twig->render('helm/Values.yaml.twig');
-        $chart = $this->twig->render('helm/Chart.yaml.twig');
+        $values = $this->twig->render('@CommonGround/helm/Values.yaml.twig');
+        $chart = $this->twig->render('@CommonGround/helm/Chart.yaml.twig');
 
         if (!empty($location = $input->getOption('location')) && \is_string($location)) {
             file_put_contents($location.'/values.yaml', $values);

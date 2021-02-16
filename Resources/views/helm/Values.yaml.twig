@@ -6,14 +6,10 @@ settings:
   registryBase: {{ container_registry_base }}
   projectName: {{ container_project_name }}
   name: {{ app_name }}
-  title: {{ app_title }}
   version: {{ app_version }}
-  id: {{ app_id }}
   description: '{{ app_description }}'
-  type: {{ app_type }}
   repro: {{ app_repro }}
   demo: {{ app_demo }}
-  container: {{ app_container }}
   domain: {{ app_domain }}
   subdomain: {{ app_subdomain }}
   subpath: {{ app_subpath }}
@@ -21,7 +17,7 @@ settings:
   env: {{ app_env }}
   web: {{ app_web }}
   debug: {{ app_debug }}
-  cache: {{ app_debug }}
+  cache: {{ app_cache }}
   replicaCount: 1
   corsAllowOrigin: ['*']
   trustedHosts: '{{ trusted_hosts }}'
@@ -31,11 +27,9 @@ settings:
     - 10.0.0.0/8
     - 172.16.0.0/12
     - 192.168.0.0/16
-  # If you are runnig a single component on a kubernetes cluster you can just easaliy enable the load balancer, if not you need to set up a multi component load balancer
+  # If you are running a single component on a kubernetes cluster you can just easily enable the load balancer, if not you need to set up a multi component load balancer
   loadbalancerEnabled: false
-  # If you want to enable NLX you are requered to add the appropreate certificates to you nlx-settings folder (located in the /api folder)
-  nlxInwayEnabled: {{ nlx_inway }}
-  # If you are runnig a single component on a kubernetes cluster you can just easaliy enable the load balancer, if not you need to set up a multi component load balancer
+  # If you are running a single component on a kubernetes cluster you can just easily enable the load balancer, if not you need to set up a multi component load balancer
   notificationEnabled: false
   audittrailEnabled: false
   authorisationEnabled: false
@@ -43,8 +37,6 @@ settings:
   archiveEnabled: false
 
 security:
-  commongroundId: "{{ app_commonground_id }}"
-  commongroundKey: "{{ app_commonground_key }}"
   applicationKey: "{{  app_application_key }}"
   authorisationProviderUser: {{ auth_provider_user }}
   authorisationProviderApplication: {{ auth_provider_application }}

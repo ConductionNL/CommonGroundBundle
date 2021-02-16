@@ -39,9 +39,10 @@ class AuditTrailSubscriber implements EventSubscriberInterface
     {
         $method = $event->getRequest()->getMethod();
         $route = $event->getRequest()->attributes->get('_route');
+        $audit = $this->params->get('app_audittrail');
 
         // Only do somthing if we are on te log route and the entity is logable
-        if ($method != 'GET' || !strpos($route, '_get_audit_trail_item')) {
+        if ($method != 'GET' || !strpos($route, '_get_audit_trail_item') || !$audit) {
             return;
         }
 
