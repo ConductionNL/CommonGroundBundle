@@ -4,7 +4,7 @@ namespace Conduction\CommonGroundBundle\Repository;
 
 use Conduction\CommonGroundBundle\Entity\AuditTrail;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\Common\Persistence\ManagerRegistry;
+use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method AuditTrail|null find($id, $lockMode = null, $lockVersion = null)

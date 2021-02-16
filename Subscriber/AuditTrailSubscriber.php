@@ -9,7 +9,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Event\GetResponseForControllerResultEvent;
+use Symfony\Component\HttpKernel\Event\ViewEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\Serializer\SerializerInterface;
 
@@ -35,13 +35,14 @@ class AuditTrailSubscriber implements EventSubscriberInterface
         ];
     }
 
-    public function Audittrail(GetResponseForControllerResultEvent $event)
+    public function Audittrail(ViewEvent $event)
     {
         $method = $event->getRequest()->getMethod();
         $route = $event->getRequest()->attributes->get('_route');
+        $audit = $this->params->get('app_audittrail');
 
         // Only do somthing if we are on te log route and the entity is logable
-        if ($method != 'GET' || !strpos($route, '_get_audit_trail_item')) {
+        if ($method != 'GET' || !strpos($route, '_get_audit_trail_item') || !$audit) {
             return;
         }
 

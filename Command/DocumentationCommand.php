@@ -9,6 +9,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use Symfony\Component\Filesystem\Filesystem;
 use Twig\Environment;
 
 class DocumentationCommand extends Command
@@ -41,14 +42,22 @@ class DocumentationCommand extends Command
         $io = new SymfonyStyle($input, $output);
         /** @var string $version */
 
+        $fileSystem = New Filesystem();
+
+        $output->writeln('Generating README.md');
         $readMe = $this->twig->render('@CommonGround/repo/README.md.twig');
-        file_put_contents('README.MD', $readMe);
-        $io->success(sprintf('Data written to %s/README.MD.', '/app'));
+        $fileSystem->dumpFile('documentation/README.MD', $readMe);
+        $io->success(sprintf('Data written to %s/README.MD.', '/app/documentation'));
 
+        $output->writeln('Generating .env');
         $env = $this->twig->render('@CommonGround/repo/env.env.twig');
-        file_put_contents('.env', $env);
-        $io->success(sprintf('Data written to %s/.env', '/app'));
+        $fileSystem->dumpFile('documentation/.env', $env);
+        $io->success(sprintf('Data written to %s/.env', '/app/documentation'));
 
+        $output->writeln('Generating artifacthub-repo.yaml');
+        $env = $this->twig->render('@CommonGround/helm/artifacthub-repo.yaml.twig');
+        $fileSystem->dumpFile('documentation/artifacthub-repo.yaml', $env);
+        $io->success(sprintf('Data written to %s/artifacthub-repo.yaml', '/app/documentation'));
 
         return 0;
     }
