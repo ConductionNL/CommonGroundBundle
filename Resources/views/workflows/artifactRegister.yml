@@ -54,7 +54,3 @@ jobs:
                   method: POST
                   payload: '{"name": "${{ env.NAME }}", "url": "${{ env.HELM }}"}'
                   headers: '{"X-API-Key": "${{secrets.ARTIFACT_KEY}}"}'
-            - name: Print the response status
-              run: |
-                  $output = '${{ steps.webhook.outputs.output }}' | ConvertFrom-Json
-                  Write-Host "Time from output $($output.time) statusCode $($output.statusCode) data $($output.data)"
