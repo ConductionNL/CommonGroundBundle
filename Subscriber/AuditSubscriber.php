@@ -46,7 +46,7 @@ class AuditSubscriber implements EventSubscriberInterface
         $session = new Session();
         $audit = $this->params->get('app_audittrail');
 
-        if (!$audit) {
+        if ($audit != 'true') {
             return;
         }
 
