@@ -59,6 +59,11 @@ class DocumentationCommand extends Command
         $fileSystem->dumpFile('documentation/artifacthub-repo.yaml', $env);
         $io->success(sprintf('Data written to %s/artifacthub-repo.yaml', '/app/documentation'));
 
+        $output->writeln('Generating values.schema.json');
+        $env = $this->twig->render('@CommonGround/helm/values.schema.json.twig');
+        $fileSystem->dumpFile('documentation/values.schema.json', $env);
+        $io->success(sprintf('Data written to %s/values.schema.json', '/app/documentation'));
+
         return 0;
     }
 }
