@@ -34,8 +34,10 @@ parameters:
     env(APP_INTERNAL):
     env(APP_BUILD_ALL_FIXTURES):
     env(APP_URL): "http://localhost"
+    env(APP_CONTAINER): ""
   
     app_env: "%env(APP_ENV)%"
+    app_container: "%env(APP_CONTAINER)%"
     app_debug: "%env(APP_DEBUG)%"
     app_cache: "%env(APP_CACHE)%"
     app_auth: "%env(APP_AUTH)%"
