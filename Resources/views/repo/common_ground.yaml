@@ -29,12 +29,18 @@ parameters:
     env(APP_SUBDOMAIN):
     env(APP_SUBPATH):
     env(APP_SUBPATH_ROUTING):
+    env(APP_CONTAINER): ""
     env(APP_DEMO): "pc.zaakonline.nl"
     env(APP_WEB):
     env(APP_INTERNAL):
     env(APP_BUILD_ALL_FIXTURES):
     env(APP_URL): "http://localhost"
-    env(APP_CONTAINER): ""
+    env(FACEBOOK_ID): ""
+    env(FACEBOOK_SECRET): ""
+    env(GMAIL_ID): ""
+    env(GMAIL_SECRET): ""
+    env(IDIN_ID): ""
+    env(IDIN_SECRET): ""
   
     app_env: "%env(APP_ENV)%"
     app_container: "%env(APP_CONTAINER)%"
@@ -66,6 +72,12 @@ parameters:
     artifacthub_id: "%env(ARTIFACTHUB_ID)%"
     artifacthub_user: "%env(ARTIFACTHUB_USER)%"
     helm_repository: "%env(HELM_REPOSITORY)%"
+    facebook_id: "%env(FACEBOOK_ID)%"
+    facebook_secret: "%env(FACEBOOK_SECRET)%"
+    gmail_id: "%env(GMAIL_ID)%"
+    gmail_secret: "%env(GMAIL_SECRET)%"
+    idin_id: "%env(IDIN_ID)%"
+    idin_secret: "%env(IDIN_SECRET)%"
 
     # Busnes Engine
     env(APP_COMMONGROUND_BE_LOCATION): "https://ac.%env(APP_DOMAIN)%"
@@ -289,6 +301,12 @@ twig:
         artifacthub_id: "%env(ARTIFACTHUB_ID)%"
         artifacthub_user: "%env(ARTIFACTHUB_USER)%"
         helm_repository: "%env(HELM_REPOSITORY)%"
+        facebook_id: "%env(FACEBOOK_ID)%"
+        facebook_secret: "%env(FACEBOOK_SECRET)%"
+        gmail_id: "%env(GMAIL_ID)%"
+        gmail_secret: "%env(GMAIL_SECRET)%"
+        idin_id: "%env(IDIN_ID)%"
+        idin_secret: "%env(IDIN_SECRET)%"
 
         # Security Details
         app_commonground_id: "%env(APP_COMMONGROUND_ID)%"
