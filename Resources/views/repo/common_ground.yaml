@@ -29,6 +29,7 @@ parameters:
     env(APP_SUBDOMAIN):
     env(APP_SUBPATH):
     env(APP_SUBPATH_ROUTING):
+    env(APP_CONTAINER): ""
     env(APP_DEMO): "pc.zaakonline.nl"
     env(APP_WEB):
     env(APP_INTERNAL):
