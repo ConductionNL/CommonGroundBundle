@@ -50,6 +50,18 @@ php:
   secret: ""
   replicaCount: 2
 
+redis:
+  cluster:
+    enabled: false
+  enabled: false
+  redisPort: 6379
+
+commonground:
+  eherkenning:
+    location: https://{{ app_domain }}/eherkenning
+  digispoof:
+    location: https://{{ app_domain }}/digispoof
+
 nginx:
   repository: docker.io/conduction/protocomponent-nginx
   tag: latest
