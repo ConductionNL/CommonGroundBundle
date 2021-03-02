@@ -936,7 +936,7 @@ class CommonGroundService
      */
     public function getApplication($force = false, $async = false)
     {
-        $application = $this->getResource(['component' => 'wrc', 'type' => 'applications', 'id' => $this->params->get('common_ground.app.id')]);
+        $application = $this->getResource(['component' => 'wrc', 'type' => 'applications', 'id' => $this->params->get('app_id')]);
 
         return $application;
     }
