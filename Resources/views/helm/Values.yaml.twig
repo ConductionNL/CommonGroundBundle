@@ -55,7 +55,7 @@ php:
 redis:
   cluster:
     enabled: false
-  enabled: false
+  enabled: {% if app_type == 'component' %}false{% else %}true{% endif %}
   redisPort: 6379
   usePassword: false
 
