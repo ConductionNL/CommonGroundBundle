@@ -90,9 +90,7 @@ class CommonGroundService
         $this->headers = [
             'Accept'        => 'application/ld+json',
             'Content-Type'  => 'application/json',
-            'Authorization' => $this->params->get('app_commonground_key'),
-            // NLX
-            'X-NLX-Request-Application-Id' => $this->params->get('app_commonground_id'), // the id of the application performing the request
+            'Authorization' => $this->params->get('app_application_key'),
             // NL Api Strategie
             'Accept-Crs'  => 'EPSG:4326',
             'Content-Crs' => 'EPSG:4326',
@@ -142,8 +140,6 @@ class CommonGroundService
         $returnUrl = [];
 
         if (!key_exists('scheme', $parsedUrl) || !key_exists('host', $parsedUrl)) {
-            exit;
-
             return false;
         }
 
@@ -230,6 +226,14 @@ class CommonGroundService
         $auth = false;
         $headers = $this->headers;
 
+        /*
+         * Pagination might have been aplied, if so we would like to pass that trough
+         */
+        if($this->request instanceof Request){
+            if($start = $this->request->query->get('start')) $query['start'] = (int) $start;
+            if($limit = $this->request->query->get('limit')) $query['limit'] = (int) $limit;
+        }
+
         $query = $this->convertQuery($query);
 
         // Component specific congiguration
@@ -246,15 +250,10 @@ class CommonGroundService
             }
         }
 
-        /*
-         * Pagination might have been aplied, if so we would like to pass that trough
-         */
-        if($start = $this->request->query->get('start')) $query['start'] = (int) $start;
-        if($limit = $this->request->query->get('limit')) $query['limit'] = (int) $limit;
-
-        /*
-         * The we get up to actually getting the data
-         */
+        if(defined($this->request) && $this->request){
+            if($start = $this->request->query->get('start')) $query['start'] = (int) $start;
+            if($limit = $this->request->query->get('limit')) $query['limit'] = (int) $limit;
+        }
 
         if (!$async) {
             try {
@@ -816,7 +815,7 @@ class CommonGroundService
     /*
      * The save fucntion should only be used by applications that can render flashes
      */
-    public function saveResource($resource, $endpoint = false, $autowire = true, $events = true)
+    public function saveResource($resource, $endpoint = false, $autowire = true, $events = true, $succesMessages = true, $errorMessages = true)
     {
         // We dont require an endpoint if a resource is self explanatory
         if (is_array($endpoint) && array_key_exists('component', $endpoint)) {
@@ -858,18 +857,20 @@ class CommonGroundService
             if ($this->updateResource($resource, null, false, $autowire, $events)) {
                 // Lets renew the resource
                 $resource = $this->getResource($resource['@id'], [], false, false, $autowire, $events);
-                $this->throwMessage('success', $resource, 'saved');
-            } else {
-                if (array_key_exists('name', $resource)) {
-                    $this->throwMessage('error', $resource, 'could not be saved');
+                if ($succesMessages) {
+                    $this->throwMessage('success', $resource, 'saved');
                 }
+            } elseif (array_key_exists('name', $resource) && $errorMessages) {
+                $this->throwMessage('error', $resource, 'could not be saved');
             }
         } else {
             if ($createdResource = $this->createResource($resource, $endpoint, false, $autowire)) {
                 // Lets renew the resource
                 $resource = $this->getResource($createdResource['@id'], [], false, false, $autowire);
-                $this->throwMessage('success', $resource, 'created');
-            } else {
+                if ($succesMessages) {
+                    $this->throwMessage('success', $resource, 'created');
+                }
+            } elseif ($errorMessages) {
                 $this->throwMessage('error', $resource, 'could not be created');
             }
         }
@@ -935,7 +936,7 @@ class CommonGroundService
      */
     public function getApplication($force = false, $async = false)
     {
-        $application = $this->getResource(['component' => 'wrc', 'type' => 'applications', 'id' => $this->params->get('common_ground.app.id')]);
+        $application = $this->getResource(['component' => 'wrc', 'type' => 'applications', 'id' => $this->params->get('app_id')]);
 
         return $application;
     }
@@ -1170,7 +1171,19 @@ class CommonGroundService
             $queryString = '';
             $iterator = 0;
             foreach ($query as $parameter => $value) {
-                $queryString .= "$parameter=$value";
+                // Lets catch array in the querry (http technically they are aloowd 1 deep)
+                $arryIterator = 0;
+                if (is_array($value)) {
+                    foreach ($value as  $arryValue) {
+                        $queryString .= $parameter.'[]='.$arryValue;
+                        $arryIterator++;
+                        if ($arryIterator < count($value)) {
+                            $queryString .= '&';
+                        }
+                    }
+                } else {
+                    $queryString .= "$parameter=$value";
+                }
 
                 $iterator++;
                 if ($iterator < count($query)) {
@@ -1223,11 +1236,11 @@ class CommonGroundService
                 $this->params->get('app_subpath_routing') &&
                 $this->params->get('app_subpath_routing') != 'false' &&
                 $this->params->get('app_env') == 'prod') {
-                $url = 'https://'.$this->params->get('app_domain').'/api/'.$this->params->get('app_major_version').'/'.$url['component'].$route;
+                $url = 'https://'.$this->params->get('app_domain').'/api/v1/'.$url['component'].$route;
             } elseif (
                 $this->params->get('app_subpath_routing') &&
                 $this->params->get('app_subpath_routing') != 'false') {
-                $url = 'https://'.$this->params->get('app_env').'.'.$this->params->get('app_domain').'/api/'.$this->params->get('app_major_version').'/'.$url['component'].$route;
+                $url = 'https://'.$this->params->get('app_env').'.'.$this->params->get('app_domain').'/api/v1/'.$url['component'].$route;
             } elseif ($this->params->get('app_env') == 'prod') {
                 $url = 'https://'.$url['component'].'.'.$this->params->get('app_domain').$route;
             } else {
@@ -1275,6 +1288,10 @@ class CommonGroundService
     public function setHeader($key, $value)
     {
         $this->headers[$key] = $value;
+    }
+
+    public function getHeader($key){
+        return $this->headers[$key];
     }
 
     /**

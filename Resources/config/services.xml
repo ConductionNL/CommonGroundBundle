@@ -6,6 +6,10 @@
     <services>
         <defaults autowire="true" autoconfigure="true" />
 
+        <!-- Default Controller -->
+        <service id="conduction_commonground.default_controller" class="Conduction\CommonGroundBundle\Controller\DefaultController" public="true">
+        </service>
+
         <!--CommonGround Services-->
         <service id="Conduction\CommonGroundBundle\Service\ApplicationService" />
         <service id="Conduction\CommonGroundBundle\Service\CamundaService" />
@@ -39,6 +43,7 @@
         <service id="Conduction\CommonGroundBundle\Security\CommongroundIrmaAuthenticator" />
         <service id="Conduction\CommonGroundBundle\Security\CommongroundIdvaultAuthenticator" />
         <service id="Conduction\CommonGroundBundle\Security\CommongroundGithubAuthenticator" />
+        <service id="Conduction\CommonGroundBundle\Security\CommongroundLinkedInAuthenticator" />
 
         <!--CommonGround Repositories-->
         <service id="Conduction\CommonGroundBundle\Repository\AuditTrailRepository">
@@ -95,6 +100,9 @@
             <tag name="console.command"/>
         </service>
         <service id="Conduction\CommonGroundBundle\Command\PubliccodeCommand">
+            <tag name="console.command"/>
+        </service>
+        <service id="Conduction\CommonGroundBundle\Command\DocumentationCommand">
             <tag name="console.command"/>
         </service>
         <service id="Conduction\CommonGroundBundle\Command\RunVSBECommand">

@@ -80,7 +80,7 @@ class CommongroundIdvaultAuthenticator extends AbstractGuardAuthenticator
             'headers'  => ['Content-Type' => 'application/json', 'Accept' => 'application/json'],
             'base_uri' => 'https://id-vault.com',
             // You can set any number of default request options.
-            'timeout'  => 2.0,
+            'timeout'  => 5.0,
         ]);
 
         $response = $client->request('POST', '/api/access_tokens', [
@@ -103,6 +103,7 @@ class CommongroundIdvaultAuthenticator extends AbstractGuardAuthenticator
             'givenName'     => $json['given_name'],
             'familyName'    => $json['family_name'],
             'id'            => $json['jti'],
+            'authorization' => $accessToken['accessToken'],
         ];
 
         $request->getSession()->set(
@@ -180,17 +181,21 @@ class CommongroundIdvaultAuthenticator extends AbstractGuardAuthenticator
         $log['status'] = '200';
         $log['application'] = $application;
 
-        $this->commonGroundService->saveResource($log, ['component' => 'uc', 'type' => 'login_logs']);
+        $this->commonGroundService->saveResource($log, ['component' => 'uc', 'type' => 'login_logs'], [], [], false, false);
 
         if (!in_array('ROLE_USER', $user['roles'])) {
             $user['roles'][] = 'ROLE_USER';
         }
-        array_push($user['roles'], 'scope.chin.checkins.read');
+        foreach ($user['roles'] as $key=>$role) {
+            if (strpos($role, 'ROLE_') !== 0) {
+                $user['roles'][$key] = "ROLE_$role";
+            }
+        }
 
         if (isset($user['organization'])) {
-            return new CommongroundUser($user['username'], $user['username'], $person['name'], null, $user['roles'], $user['person'], $user['organization'], 'id-vault');
+            return new CommongroundUser($user['username'], $user['username'], $person['name'], null, $user['roles'], $user['person'], $user['organization'], 'id-vault', false, $credentials['authorization']);
         } else {
-            return new CommongroundUser($user['username'], $user['username'], $person['name'], null, $user['roles'], $user['person'], null, 'id-vault');
+            return new CommongroundUser($user['username'], $user['username'], $person['name'], null, $user['roles'], $user['person'], null, 'id-vault', false, $credentials['authorization']);
         }
     }
 
