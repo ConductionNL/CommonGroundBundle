@@ -63,6 +63,9 @@
         <service id="fields.and.extend.subscriber" class="Conduction\CommonGroundBundle\Subscriber\FieldsAndExtendSubscriber">
             <tag name="kernel.event_subscriber"/>
         </service>
+        <service id="resource.subscriber" class="Conduction\CommonGroundBundle\Subscriber\ResourceSubscriber">
+            <tag name="kernel.event_subscriber"/>
+        </service>
         <service id="health.check.subscriber" class="Conduction\CommonGroundBundle\Subscriber\HealthCheckSubscriber">
             <tag name="kernel.event_subscriber"/>
         </service>

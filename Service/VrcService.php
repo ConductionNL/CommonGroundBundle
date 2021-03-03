@@ -450,8 +450,8 @@ class VrcService
             if (count($invoices) > 0) {
                 $invoice = $invoices[0];
             } else {
-                $post = ['url'=>$request['order']];
-                $invoice = $this->commonGroundService->saveResource($post, ['component' => 'bc', 'type' => 'order']);
+                //$post = ['url'=>$request['order']];
+                //$invoice = $this->commonGroundService->saveResource($post, ['component' => 'bc', 'type' => 'order']);
             }
         }
 
