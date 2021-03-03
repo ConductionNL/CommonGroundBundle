@@ -93,7 +93,7 @@ class VrcService
         }
     }
 
-    /*
+    /**
      * This function translates nested objects on a request to commonground resources
      *
      * @param array $request The request before stage completion checks
@@ -374,6 +374,7 @@ class VrcService
 
             // We have a new order so will need to write the order to the request
             $request['order'] = $order['@id'];
+
             unset($request['submitters']);
             unset($request['children']);
             unset($request['parent']);
@@ -381,6 +382,7 @@ class VrcService
         } else {
             $order = $this->commonGroundService->getResource($request['order'], [], true);
         }
+        $orderIRI = "/orders/{$order['id']}";
 
         /*
          * Lets loop trough al the calendars and create or update the nececery events
@@ -408,7 +410,7 @@ class VrcService
             }
 
             $orderItem['quantity'] = 1;
-            $orderItem['order'] = $request['order'];
+            $orderItem['order'] = $orderIRI;
             $requestItems[$offer['@id']] = $orderItem;
         }
 
