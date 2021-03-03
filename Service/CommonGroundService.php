@@ -249,8 +249,12 @@ class CommonGroundService
         /*
          * Pagination might have been aplied, if so we would like to pass that trough
          */
-        if($start = $this->request->query->get('start')) $query['start'] = (int) $start;
-        if($limit = $this->request->query->get('limit')) $query['limit'] = (int) $limit;
+        if ($start = $this->request->query->get('start')) {
+            $query['start'] = (int) $start;
+        }
+        if ($limit = $this->request->query->get('limit')) {
+            $query['limit'] = (int) $limit;
+        }
 
         /*
          * The we get up to actually getting the data
@@ -1112,7 +1116,7 @@ class CommonGroundService
                 (!$this->params->get('app_internal') || $this->params->get('app_internal') === 'false')
             ) {
                 $component = $this->getComponentFromUrl($parsedUrl);
-                if(strpos($component, 'http') !== false){
+                if (strpos($component, 'http') !== false) {
                     $componentUrl = $component;
                 } else {
                     $componentUrl = $this->cleanUrl(['component' => $component]);
@@ -1133,21 +1137,20 @@ class CommonGroundService
 
     private function getComponentFromUrl(array $parsedUrl): string
     {
-        $path = explode('/',$parsedUrl['path']);
+        $path = explode('/', $parsedUrl['path']);
         $apiKey = array_search('api', $path);
         $versionKey = array_search('v1', $path);
-        if($apiKey && $versionKey && count($path) > $versionKey + 1)
-        {
+        if ($apiKey && $versionKey && count($path) > $versionKey + 1) {
             $component = $path[$versionKey + 1];
         } else {
             $component = explode('.', $parsedUrl['host'])[0];
         }
-        if(
+        if (
             $parsedUrl['host'] != $this->params->get('app_domain') &&
             $parsedUrl['host'] != "{$this->params->get('app_env')}.{$this->params->get('app_domain')}" &&
             $parsedUrl['host'] != "$component.{$this->params->get('app_env')}.{$this->params->get('app_domain')}"
-        ){
-            if(strpos($component, $parsedUrl['host']) !== false){
+        ) {
+            if (strpos($component, $parsedUrl['host']) !== false) {
                 return $parsedUrl['host'];
             } else {
                 return "{$parsedUrl['scheme']}://{$parsedUrl['host']}/api/v1/$component";
