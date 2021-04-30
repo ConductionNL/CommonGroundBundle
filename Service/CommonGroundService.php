@@ -264,7 +264,7 @@ class CommonGroundService
                     'http_errors' => $error,
                 ]);
             } catch (\GuzzleHttp\Exception\ClientException $e) {
-                var_dump($e->getResponse()->getBody()->getContents()); //Log::error($e->getResponse()->getBody()->getContents());
+//                var_dump($e->getResponse()->getBody()->getContents()); //Log::error($e->getResponse()->getBody()->getContents());
 
                 throw $e;
             }
@@ -277,7 +277,7 @@ class CommonGroundService
                     'http_errors' => $error,
                 ]);
             } catch (\GuzzleHttp\Exception\ClientException $e) {
-                var_dump($e->getResponse()->getBody()->getContents()); //Log::error($e->getResponse()->getBody()->getContents());
+//                var_dump($e->getResponse()->getBody()->getContents()); //Log::error($e->getResponse()->getBody()->getContents());
 
                 throw $e;
             }
@@ -401,7 +401,7 @@ class CommonGroundService
                 ]);
             } catch (\GuzzleHttp\Exception\ClientException $e) {
                 // here's the good stuff
-                var_dump($e->getResponse()->getBody()->getContents()); //Log::error($e->getResponse()->getBody()->getContents());
+//                var_dump($e->getResponse()->getBody()->getContents()); //Log::error($e->getResponse()->getBody()->getContents());
 
                 throw $e;
             }
@@ -415,7 +415,7 @@ class CommonGroundService
                 ]);
             } catch (\GuzzleHttp\Exception\ClientException $e) {
                 // here's the good stuff
-                var_dump($e->getResponse()->getBody()->getContents()); //Log::error($e->getResponse()->getBody()->getContents());
+//                var_dump($e->getResponse()->getBody()->getContents()); //Log::error($e->getResponse()->getBody()->getContents());
 
                 throw $e;
             }
@@ -538,7 +538,7 @@ class CommonGroundService
                 ]);
             } catch (\GuzzleHttp\Exception\ClientException $e) {
                 // here's the good stuff
-                var_dump($e->getResponse()->getBody()->getContents()); //Log::error($e->getResponse()->getBody()->getContents());
+//                var_dump($e->getResponse()->getBody()->getContents()); //Log::error($e->getResponse()->getBody()->getContents());
 
                 throw $e;
             }
@@ -552,7 +552,7 @@ class CommonGroundService
                 ]);
             } catch (\GuzzleHttp\Exception\ClientException $e) {
                 // here's the good stuff
-                var_dump($e->getResponse()->getBody()->getContents()); //Log::error($e->getResponse()->getBody()->getContents());
+//                var_dump($e->getResponse()->getBody()->getContents()); //Log::error($e->getResponse()->getBody()->getContents());
 
                 throw $e;
             }
@@ -657,7 +657,7 @@ class CommonGroundService
                 ]);
             } catch (\GuzzleHttp\Exception\ClientException $e) {
                 // here's the good stuff
-                var_dump($e->getResponse()->getBody()->getContents()); //Log::error($e->getResponse()->getBody()->getContents());
+//                var_dump($e->getResponse()->getBody()->getContents()); //Log::error($e->getResponse()->getBody()->getContents());
 
                 throw $e;
             }
@@ -671,8 +671,8 @@ class CommonGroundService
                 ]);
             } catch (\GuzzleHttp\Exception\ClientException $e) {
                 // here's the good stuff
-                var_dump($e->getResponse()->getBody()->getContents());
-                var_dump($e->getResponse()->getBody()->getContents()); //Log::error($e->getResponse()->getBody()->getContents());
+//                var_dump($e->getResponse()->getBody()->getContents());
+//                var_dump($e->getResponse()->getBody()->getContents()); //Log::error($e->getResponse()->getBody()->getContents());
 
                 throw $e;
             }
@@ -771,7 +771,7 @@ class CommonGroundService
                 ]);
             } catch (\GuzzleHttp\Exception\ClientException $e) {
                 // here's the good stuff
-                var_dump($e->getResponse()->getBody()->getContents()); //Log::error($e->getResponse()->getBody()->getContents());
+//                var_dump($e->getResponse()->getBody()->getContents()); //Log::error($e->getResponse()->getBody()->getContents());
 
                 throw $e;
             }
@@ -783,7 +783,7 @@ class CommonGroundService
                 ]);
             } catch (\GuzzleHttp\Exception\ClientException $e) {
                 // here's the good stuff
-                var_dump($e->getResponse()->getBody()->getContents()); //Log::error($e->getResponse()->getBody()->getContents());
+//                var_dump($e->getResponse()->getBody()->getContents()); //Log::error($e->getResponse()->getBody()->getContents());
 
                 throw $e;
             }
