@@ -864,9 +864,9 @@ class CommonGroundService
                 $this->throwMessage('error', $resource, 'could not be saved');
             }
         } else {
-            if ($createdResource = $this->createResource($resource, $endpoint, false, $autowire)) {
+            if ($createdResource = $this->createResource($resource, $endpoint, false, $autowire, $events)) {
                 // Lets renew the resource
-                $resource = $this->getResource($createdResource['@id'], [], false, false, $autowire);
+                $resource = $this->getResource($createdResource['@id'], [], false, false, $autowire, $events);
                 if ($succesMessages) {
                     $this->throwMessage('success', $resource, 'created');
                 }
