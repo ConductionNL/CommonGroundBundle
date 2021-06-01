@@ -1,7 +1,14 @@
+{% if badges|default %}
+    {% set badgesArr = badges|split(',')  %}
+{% endif %}
+
 # {{ app_name }}
 
 Description
 ----
+{% if badgesArr|default and badgesArr|length > 0 %}{% for badge in badgesArr %}{{ badge }} {% endfor %}{% endif %}
+
+
 {{ app_description }}
 
 Additional Information

@@ -46,8 +46,8 @@ class DocumentationCommand extends Command
 
         $output->writeln('Generating README.md');
         $readMe = $this->twig->render('@CommonGround/repo/README.md.twig');
-        $fileSystem->dumpFile('documentation/README.MD', $readMe);
-        $io->success(sprintf('Data written to %s/README.MD.', '/app/documentation'));
+        $fileSystem->dumpFile('documentation/README.md', $readMe);
+        $io->success(sprintf('Data written to %s/README.md.', '/app/documentation'));
 
         $output->writeln('Generating .env');
         $env = $this->twig->render('@CommonGround/repo/env.env.twig');
