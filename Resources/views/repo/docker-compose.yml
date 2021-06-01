@@ -32,12 +32,10 @@ services:
       - DATABASE_URL=mysql://api-platform:!ChangeMe!@db/api?serverVersion=10.1
       - APP_ENV=${APP_ENV}
       - APP_CONTAINER=${APP_CONTAINER}
-      - APP_MAJOR_VERSION=${APP_MAJOR_VERSION}
       - APP_DEBUG=${APP_DEBUG}
       - APP_CACHE=${APP_CACHE}
       - APP_VERSION=${APP_VERSION}
       - APP_NAME=${APP_NAME}
-      - APP_ID=${APP_ID}
       - APP_NAME_TECHNICAL=${APP_NAME_TECHNICAL}
       - APP_DOMAIN=${APP_DOMAIN}
       - APP_SUBDOMAIN=${APP_SUBDOMAIN}
@@ -52,6 +50,7 @@ services:
       - APP_APPLICATION_KEY=${APP_APPLICATION_KEY}
       - APP_BUILD_ALL_FIXTURES=${APP_BUILD_ALL_FIXTURES}
       - APP_WEB=${APP_WEB}
+      - BADGES=${BADGES}
       - APP_BUILD=${APP_BUILD}
       - APP_INTERNAL=${APP_INTERNAL}
       - APP_URL=${APP_URL}
