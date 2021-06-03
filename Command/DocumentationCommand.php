@@ -49,6 +49,11 @@ class DocumentationCommand extends Command
         $fileSystem->dumpFile('documentation/README.md', $readMe);
         $io->success(sprintf('Data written to %s/README.md.', '/app/documentation'));
 
+        $output->writeln('Generating helm README.md');
+        $readMe = $this->twig->render('@CommonGround/repo/HELMREADME.md.twig');
+        $fileSystem->dumpFile('documentation/helm/README.md', $readMe);
+        $io->success(sprintf('Data written to %s/helm/README.md.', '/app/documentation/helm'));
+
         $output->writeln('Generating .env');
         $env = $this->twig->render('@CommonGround/repo/env.env.twig');
         $fileSystem->dumpFile('documentation/.env', $env);
