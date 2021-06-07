@@ -97,7 +97,7 @@ class CommongroundDigispoofAuthenticator extends AbstractGuardAuthenticator
         array_push($user['roles'], 'scope.arc.events.read');
         array_push($user['roles'], 'scope.irc.assents.read');
 
-        return new CommongroundUser($user['naam']['voornamen'], $user['id'], $user['naam']['voornamen'], null, $user['roles'], $user['@id'], null, 'person', false);
+        return new CommongroundUser($user['naam']['voornamen'], $user['id'], $user['naam']['voornamen'], null, $user['roles'], $this->commonGroundService->cleanUrl(['component'=>'brp', 'type'=>'ingeschrevenpersonen', 'id' => $user['burgerservicenummer']]), null, 'person', false);
     }
 
     public function checkCredentials($credentials, UserInterface $user)
