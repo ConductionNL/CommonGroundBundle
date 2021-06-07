@@ -33,7 +33,7 @@ parameters:
     env(APP_CONTAINER): ""
     env(APP_DEMO): "pc.zaakonline.nl"
     env(APP_WEB):
-    env(APP_INTERNAL):
+    env(APP_INTERNAL): "false"
     env(APP_BUILD_ALL_FIXTURES):
     env(APP_URL): "http://localhost"
     env(FACEBOOK_ID): ""
