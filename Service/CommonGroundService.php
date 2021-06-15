@@ -1212,6 +1212,7 @@ class CommonGroundService
     public function cleanUrl($url = false, $resource = false, $autowire = true)
     {
         // The Url might be an array of component information
+
         if (is_array($url) && array_key_exists('component', $url)) {
             $route = '';
             if (array_key_exists('type', $url)) {
@@ -1235,13 +1236,13 @@ class CommonGroundService
             } elseif (
                 $this->params->get('app_subpath_routing') &&
                 $this->params->get('app_subpath_routing') != 'false' &&
-                $this->params->get('app_env') == 'prod') {
+                ($this->params->get('app_env') == 'prod') || getenv('APP_ENV') == 'prod') {
                 $url = 'https://'.$this->params->get('app_domain').'/api/v1/'.$url['component'].$route;
             } elseif (
                 $this->params->get('app_subpath_routing') &&
                 $this->params->get('app_subpath_routing') != 'false') {
                 $url = 'https://'.$this->params->get('app_env').'.'.$this->params->get('app_domain').'/api/v1/'.$url['component'].$route;
-            } elseif ($this->params->get('app_env') == 'prod') {
+            } elseif ($this->params->get('app_env') == 'prod' || getenv('APP_ENV') == 'prod') {
                 $url = 'https://'.$url['component'].'.'.$this->params->get('app_domain').$route;
             } else {
                 $url = 'https://'.$url['component'].'.'.$this->params->get('app_env').'.'.$this->params->get('app_domain').$route;
@@ -1252,11 +1253,13 @@ class CommonGroundService
             $url = $resource['@id'];
         }
 
+
+
         // Split enviroments, if the env is not dev the we need add the env to the url name
         $parsedUrl = parse_url($url);
 
         // We only do this on non-production enviroments
-        if ($this->params->get('app_env') != 'prod' && $autowire && strpos($url, $this->params->get('app_env').'.') === false) {
+        if ( ($this->params->get('app_env') != 'prod') && getenv('APP_ENV') != 'prod' && $autowire && strpos($url, $this->params->get('app_env').'.') === false) {
 
             // Lets make sure we dont have doubles
             $url = str_replace($this->params->get('app_env').'.', '', $url);
@@ -1265,6 +1268,7 @@ class CommonGroundService
                 // e.g https://wrc.larping.eu/ becomes https://wrc.dev.larping.eu/
                 $host = explode('.', $parsedUrl['host']);
                 $subdomain = $host[0];
+
                 $url = str_replace($subdomain.'.', $subdomain.'.'.$this->params->get('app_env').'.', $url);
             } else {
                 $url = str_replace('https://', "https://{$this->params->get('app_env')}.", $url);
