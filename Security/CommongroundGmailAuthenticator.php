@@ -27,7 +27,6 @@ use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use Symfony\Component\Security\Guard\AbstractGuardAuthenticator;
-use function GuzzleHttp\Promise\all;
 
 class CommongroundGmailAuthenticator extends AbstractGuardAuthenticator
 {

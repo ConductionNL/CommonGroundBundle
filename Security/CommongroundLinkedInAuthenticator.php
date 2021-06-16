@@ -38,7 +38,6 @@ class CommongroundLinkedInAuthenticator extends AbstractGuardAuthenticator
     private $urlGenerator;
     private $flash;
 
-
     public function __construct(EntityManagerInterface $em, ParameterBagInterface $params, CommonGroundService $commonGroundService, CsrfTokenManagerInterface $csrfTokenManager, RouterInterface $router, UrlGeneratorInterface $urlGenerator, SessionInterface $session, FlashBagInterface $flashBag)
     {
         $this->em = $em;
