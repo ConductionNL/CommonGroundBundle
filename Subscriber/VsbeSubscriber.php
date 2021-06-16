@@ -82,33 +82,18 @@ class VsbeSubscriber implements EventSubscriberInterface
     // Our resource might reqoure aditional resources to be created, so lets look into that
     public function updated(CommongroundUpdateEvent $event)
     {
-        // Lets make sure we only triger on requests resources
-        $resource = $event->getResource();
-
-        $resource = $this->vsbeService->onUpdated($event->getResource());
-        $event->setResource($resource);
-
         return $event;
     }
 
     // Our resource might reqoure aditional resources to be created, so lets look into that
     public function create(CommongroundUpdateEvent $event)
     {
-        // Lets make sure we only triger on requests resources
-        $resource = $event->getResource();
-
         return $event;
     }
 
     // Our resource might reqoure aditional resources to be created, so lets look into that
     public function created(CommongroundUpdateEvent $event)
     {
-        // Lets make sure we only triger on requests resources
-        $resource = $event->getResource();
-
-        $resource = $this->vsbeService->onCreated($event->getResource());
-        $event->setResource($resource);
-
         return $event;
     }
 }

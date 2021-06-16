@@ -229,9 +229,13 @@ class CommonGroundService
         /*
          * Pagination might have been aplied, if so we would like to pass that trough
          */
-        if($this->request instanceof Request){
-            if($start = $this->request->query->get('start')) $query['start'] = (int) $start;
-            if($limit = $this->request->query->get('limit')) $query['limit'] = (int) $limit;
+        if ($this->request instanceof Request) {
+            if ($start = $this->request->query->get('start')) {
+                $query['start'] = (int) $start;
+            }
+            if ($limit = $this->request->query->get('limit')) {
+                $query['limit'] = (int) $limit;
+            }
         }
 
         $query = $this->convertQuery($query);
@@ -250,9 +254,13 @@ class CommonGroundService
             }
         }
 
-        if(defined($this->request) && $this->request){
-            if($start = $this->request->query->get('start')) $query['start'] = (int) $start;
-            if($limit = $this->request->query->get('limit')) $query['limit'] = (int) $limit;
+        if (defined($this->request) && $this->request) {
+            if ($start = $this->request->query->get('start')) {
+                $query['start'] = (int) $start;
+            }
+            if ($limit = $this->request->query->get('limit')) {
+                $query['limit'] = (int) $limit;
+            }
         }
 
         if (!$async) {
@@ -1113,7 +1121,7 @@ class CommonGroundService
                 (!$this->params->get('app_internal') || $this->params->get('app_internal') === 'false')
             ) {
                 $component = $this->getComponentFromUrl($parsedUrl);
-                if(strpos($component, 'http') !== false){
+                if (strpos($component, 'http') !== false) {
                     $componentUrl = $component;
                 } else {
                     $componentUrl = $this->cleanUrl(['component' => $component]);
@@ -1134,21 +1142,20 @@ class CommonGroundService
 
     private function getComponentFromUrl(array $parsedUrl): string
     {
-        $path = explode('/',$parsedUrl['path']);
+        $path = explode('/', $parsedUrl['path']);
         $apiKey = array_search('api', $path);
         $versionKey = array_search('v1', $path);
-        if($apiKey && $versionKey && count($path) > $versionKey + 1)
-        {
+        if ($apiKey && $versionKey && count($path) > $versionKey + 1) {
             $component = $path[$versionKey + 1];
         } else {
             $component = explode('.', $parsedUrl['host'])[0];
         }
-        if(
+        if (
             $parsedUrl['host'] != $this->params->get('app_domain') &&
             $parsedUrl['host'] != "{$this->params->get('app_env')}.{$this->params->get('app_domain')}" &&
             $parsedUrl['host'] != "$component.{$this->params->get('app_env')}.{$this->params->get('app_domain')}"
-        ){
-            if(strpos($component, $parsedUrl['host']) !== false){
+        ) {
+            if (strpos($component, $parsedUrl['host']) !== false) {
                 return $parsedUrl['host'];
             } else {
                 return "{$parsedUrl['scheme']}://{$parsedUrl['host']}/api/v1/$component";
@@ -1212,6 +1219,7 @@ class CommonGroundService
     public function cleanUrl($url = false, $resource = false, $autowire = true)
     {
         // The Url might be an array of component information
+
         if (is_array($url) && array_key_exists('component', $url)) {
             $route = '';
             if (array_key_exists('type', $url)) {
@@ -1235,13 +1243,13 @@ class CommonGroundService
             } elseif (
                 $this->params->get('app_subpath_routing') &&
                 $this->params->get('app_subpath_routing') != 'false' &&
-                $this->params->get('app_env') == 'prod') {
+                ($this->params->get('app_env') == 'prod') || getenv('APP_ENV') == 'prod') {
                 $url = 'https://'.$this->params->get('app_domain').'/api/v1/'.$url['component'].$route;
             } elseif (
                 $this->params->get('app_subpath_routing') &&
                 $this->params->get('app_subpath_routing') != 'false') {
                 $url = 'https://'.$this->params->get('app_env').'.'.$this->params->get('app_domain').'/api/v1/'.$url['component'].$route;
-            } elseif ($this->params->get('app_env') == 'prod') {
+            } elseif ($this->params->get('app_env') == 'prod' || getenv('APP_ENV') == 'prod') {
                 $url = 'https://'.$url['component'].'.'.$this->params->get('app_domain').$route;
             } else {
                 $url = 'https://'.$url['component'].'.'.$this->params->get('app_env').'.'.$this->params->get('app_domain').$route;
@@ -1256,7 +1264,7 @@ class CommonGroundService
         $parsedUrl = parse_url($url);
 
         // We only do this on non-production enviroments
-        if ($this->params->get('app_env') != 'prod' && $autowire && strpos($url, $this->params->get('app_env').'.') === false) {
+        if (($this->params->get('app_env') != 'prod') && getenv('APP_ENV') != 'prod' && $autowire && strpos($url, $this->params->get('app_env').'.') === false) {
 
             // Lets make sure we dont have doubles
             $url = str_replace($this->params->get('app_env').'.', '', $url);
@@ -1265,6 +1273,7 @@ class CommonGroundService
                 // e.g https://wrc.larping.eu/ becomes https://wrc.dev.larping.eu/
                 $host = explode('.', $parsedUrl['host']);
                 $subdomain = $host[0];
+
                 $url = str_replace($subdomain.'.', $subdomain.'.'.$this->params->get('app_env').'.', $url);
             } else {
                 $url = str_replace('https://', "https://{$this->params->get('app_env')}.", $url);
@@ -1290,7 +1299,8 @@ class CommonGroundService
         $this->headers[$key] = $value;
     }
 
-    public function getHeader($key){
+    public function getHeader($key)
+    {
         return $this->headers[$key];
     }
 

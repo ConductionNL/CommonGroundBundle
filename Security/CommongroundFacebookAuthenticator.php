@@ -27,7 +27,6 @@ use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use Symfony\Component\Security\Guard\AbstractGuardAuthenticator;
-use function GuzzleHttp\Promise\all;
 
 class CommongroundFacebookAuthenticator extends AbstractGuardAuthenticator
 {
@@ -50,7 +49,6 @@ class CommongroundFacebookAuthenticator extends AbstractGuardAuthenticator
         $this->session = $session;
         $this->flash = $flashBag;
     }
-
 
     /**
      * Called on every request to decide if this authenticator should be

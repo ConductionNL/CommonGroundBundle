@@ -94,9 +94,10 @@ class VrcService
     }
 
     /**
-     * This function translates nested objects on a request to commonground resources
+     * This function translates nested objects on a request to commonground resources.
      *
      * @param array $request The request before stage completion checks
+     *
      * @return array The resourceType afther stage completion checks
      */
     public function createCommongroundResources($request)

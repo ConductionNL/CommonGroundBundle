@@ -4,13 +4,11 @@ namespace Conduction\CommonGroundBundle\Subscriber;
 
 use ApiPlatform\Core\EventListener\EventPriorities;
 use Conduction\CommonGroundBundle\Service\CommonGroundService;
-use Conduction\CommonGroundBundle\Service\NLXLogService;
-use Doctrine\Inflector\InflectorFactory;
 use Doctrine\Inflector\Inflector;
+use Doctrine\Inflector\InflectorFactory;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\ViewEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\Serializer\SerializerInterface;
@@ -46,20 +44,20 @@ class ResourceSubscriber implements EventSubscriberInterface
         $route = $event->getRequest()->attributes->get('_route');
 
         if ($result && $this->params->get('app_type') != 'application') {
-            $type = explode("\\", get_class($result));
+            $type = explode('\\', get_class($result));
             $type = $this->inflector->pluralize($this->inflector->tableize(end($type)));
         } else {
-            $properties = array_slice(explode("/", $event->getRequest()->getPathInfo()), -2);
+            $properties = array_slice(explode('/', $event->getRequest()->getPathInfo()), -2);
             //@TODO: make dynamic for BRP etc.
             $type = $properties[0];
             $id = $properties[1];
         }
 
         // Only do somthing if we are on te log route and the entity is logable
-        if($this->params->get('app_notification') == 'true'){
+        if ($this->params->get('app_notification') == 'true') {
             $notification = [];
             $notification['topic'] = "{$this->params->get('app_name')}/$type";
-            switch ($method){
+            switch ($method) {
                 case 'POST':
                     $notification['action'] = 'Create';
                     break;
@@ -73,7 +71,7 @@ class ResourceSubscriber implements EventSubscriberInterface
                     return;
             }
 
-            if($result){
+            if ($result) {
                 $notification['resource'] = "{$this->params->get('app_url')}/$type/{$result->getId()}";
             } else {
                 $notification['resource'] = "{$this->params->get('app_url')}/$type/$id";
