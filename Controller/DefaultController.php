@@ -5,9 +5,7 @@
 namespace Conduction\CommonGroundBundle\Controller;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Routing\Annotation\Route;
 
@@ -21,9 +19,10 @@ use Symfony\Component\Routing\Annotation\Route;
 class DefaultController
 {
     /**
-     * This function serves the base (home) path for this template
+     * This function serves the base (home) path for this template.
      *
      * "/", name="conduction_commonground_default_index", priority=2
+     *
      * @Route("/", name="conduction_commonground_default_index")
      * @Template
      */
