@@ -7,6 +7,7 @@ settings:
   projectName: {{ app_name|replace({' ': '-'})|lower }}
   name: {{ app_name }}
   version: {{ app_version }}
+  majorVersion: {{ app_major_version }}
   description: '{{ app_description }}'
   repro: {{ app_repro }}
   demo: {{ app_demo }}
@@ -18,6 +19,9 @@ settings:
   web: {{ app_web }}
   debug: {{ app_debug }}
   cache: {{ app_cache }}
+  type: {{ app_type }}
+  id: {{ app_id }}
+  internal: {{ app_internal }}
   replicaCount: 1
   corsAllowOrigin: ['*']
   trustedHosts: '{{ trusted_hosts }}'
@@ -38,8 +42,6 @@ settings:
 
 security:
   applicationKey: "{{  app_application_key }}"
-  authorisationProviderUser: {{ auth_provider_user }}
-  authorisationProviderApplication: {{ auth_provider_application }}
 
 
 php:
@@ -50,6 +52,19 @@ php:
   env: prod
   secret: ""
   replicaCount: 2
+
+redis:
+  cluster:
+    enabled: false
+  redisPort: 6379
+  usePassword: false
+  enabled: {% if app_type == 'component' %}false{% else %}true{% endif %}
+
+commonground:
+  eherkenning:
+    location: https://{{ app_domain }}/eherkenning
+  digispoof:
+    location: https://{{ app_domain }}/digispoof
 
 nginx:
   repository: docker.io/conduction/protocomponent-nginx
@@ -76,7 +91,7 @@ postgresql:
   # Persistent Volume Storage configuration.
   # ref: https://kubernetes.io/docs/user-guide/persistent-volumes
   persistence:
-    enabled: false
+    enabled: true
   pullPolicy: IfNotPresent
 #  image:
 #    repository: postgres

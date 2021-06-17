@@ -44,6 +44,11 @@ class AuditSubscriber implements EventSubscriberInterface
         $request = $event->getRequest();
         $responce = $event->getResponse();
         $session = new Session();
+        $audit = $this->params->get('app_audittrail');
+
+        if ($audit != 'true') {
+            return;
+        }
 
         //$session->start();
         // See: https://docs.nlx.io/further-reading/transaction-logs/

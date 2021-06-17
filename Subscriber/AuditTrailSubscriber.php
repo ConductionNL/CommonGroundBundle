@@ -3,7 +3,6 @@
 namespace Conduction\CommonGroundBundle\Subscriber;
 
 use ApiPlatform\Core\EventListener\EventPriorities;
-use Conduction\CommonGroundBundle\Entity\AuditTrail;
 use Conduction\CommonGroundBundle\Service\NLXLogService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
@@ -42,7 +41,7 @@ class AuditTrailSubscriber implements EventSubscriberInterface
         $audit = $this->params->get('app_audittrail');
 
         // Only do somthing if we are on te log route and the entity is logable
-        if ($method != 'GET' || !strpos($route, '_get_audit_trail_item') || !$audit) {
+        if ($method != 'GET' || !strpos($route, '_get_audit_trail_item') || $audit != 'true') {
             return;
         }
 
