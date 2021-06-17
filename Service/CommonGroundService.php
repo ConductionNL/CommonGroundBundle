@@ -1237,53 +1237,14 @@ class CommonGroundService
                 if (array_key_exists('autowire', $component)) {
                     $autowire = $component['autowire'];
                 }
-            } // If it is not we "gues" the endpoint (this is where we could force nlx)
-            elseif ($this->params->get('app_internal') == 'true') {
-                $url = 'http://'.$url['component'].'.'.$this->params->get('app_env').'.svc.cluster.local'.$route;
-            } elseif (
-                $this->params->get('app_subpath_routing') &&
-                $this->params->get('app_subpath_routing') != 'false' &&
-                ($this->params->get('app_env') == 'prod') || getenv('APP_ENV') == 'prod') {
-                $url = 'https://'.$this->params->get('app_domain').'/api/v1/'.$url['component'].$route;
-            } elseif (
-                $this->params->get('app_subpath_routing') &&
-                $this->params->get('app_subpath_routing') != 'false') {
-                $url = 'https://'.$this->params->get('app_env').'.'.$this->params->get('app_domain').'/api/v1/'.$url['component'].$route;
-            } elseif ($this->params->get('app_env') == 'prod' || getenv('APP_ENV') == 'prod') {
-                $url = 'https://'.$url['component'].'.'.$this->params->get('app_domain').$route;
-            } else {
-                $url = 'https://'.$url['component'].'.'.$this->params->get('app_env').'.'.$this->params->get('app_domain').$route;
             }
         }
-
         if (!$url && $resource && array_key_exists('@id', $resource)) {
             $url = $resource['@id'];
         }
 
-        // Split enviroments, if the env is not dev the we need add the env to the url name
-        $parsedUrl = parse_url($url);
-
-        // We only do this on non-production enviroments
-        if (($this->params->get('app_env') != 'prod') && getenv('APP_ENV') != 'prod' && $autowire && strpos($url, $this->params->get('app_env').'.') === false) {
-
-            // Lets make sure we dont have doubles
-            $url = str_replace($this->params->get('app_env').'.', '', $url);
-
-            if (!$this->params->get('app_subpath_routing') || $this->params->get('app_subpath_routing') == 'false') {
-                // e.g https://wrc.larping.eu/ becomes https://wrc.dev.larping.eu/
-                $host = explode('.', $parsedUrl['host']);
-                $subdomain = $host[0];
-
-                $url = str_replace($subdomain.'.', $subdomain.'.'.$this->params->get('app_env').'.', $url);
-            } else {
-                $url = str_replace('https://', "https://{$this->params->get('app_env')}.", $url);
-            }
-        }
-
         // Remove trailing slash
-        $url = rtrim($url, '/');
-
-        return $url;
+        return rtrim($url, '/');
     }
 
     /*
