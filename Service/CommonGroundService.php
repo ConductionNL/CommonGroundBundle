@@ -392,11 +392,18 @@ class CommonGroundService
         }
         if ($component && array_key_exists('auth', $component)) {
             switch ($component['auth']) {
+                case 'jwt-HS256':
+                case 'jwt-RS512':
                 case 'jwt':
                     $headers['Authorization'] = 'Bearer '.$this->getJwtToken($component['code']);
                     break;
                 case 'username-password':
                     $auth = [$component['username'], $component['password']];
+                    break;
+                case 'apikey':
+                default:
+                    $headers['Authorization'] = $component['apikey'];
+                    break;
             }
         }
         if (!$async) {
@@ -519,11 +526,18 @@ class CommonGroundService
         }
         if ($component && array_key_exists('auth', $component)) {
             switch ($component['auth']) {
+                case 'jwt-HS256':
+                case 'jwt-RS512':
                 case 'jwt':
                     $headers['Authorization'] = 'Bearer '.$this->getJwtToken($component['code']);
                     break;
                 case 'username-password':
                     $auth = [$component['username'], $component['password']];
+                    break;
+                case 'apikey':
+                default:
+                    $headers['Authorization'] = $component['apikey'];
+                    break;
             }
         }
 
@@ -645,11 +659,18 @@ class CommonGroundService
         }
         if ($component && array_key_exists('auth', $component)) {
             switch ($component['auth']) {
+                case 'jwt-HS256':
+                case 'jwt-RS512':
                 case 'jwt':
                     $headers['Authorization'] = 'Bearer '.$this->getJwtToken($component['code']);
                     break;
                 case 'username-password':
                     $auth = [$component['username'], $component['password']];
+                    break;
+                case 'apikey':
+                default:
+                    $headers['Authorization'] = $component['apikey'];
+                    break;
             }
         }
 
@@ -763,11 +784,18 @@ class CommonGroundService
         }
         if ($component && array_key_exists('auth', $component)) {
             switch ($component['auth']) {
+                case 'jwt-HS256':
+                case 'jwt-RS512':
                 case 'jwt':
                     $headers['Authorization'] = 'Bearer '.$this->getJwtToken($component['code']);
                     break;
                 case 'username-password':
                     $auth = [$component['username'], $component['password']];
+                    break;
+                case 'apikey':
+                default:
+                    $headers['Authorization'] = $component['apikey'];
+                    break;
             }
         }
 
