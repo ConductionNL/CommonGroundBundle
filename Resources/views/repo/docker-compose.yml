@@ -78,6 +78,7 @@ services:
     build:
       context: ./api
       target: api_platform_nginx
+      dockerfile: Dockerfile-nginx
       <<: *cache
     depends_on:
       - php
