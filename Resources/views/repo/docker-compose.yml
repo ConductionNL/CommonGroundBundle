@@ -94,25 +94,6 @@ services:
     environment:
       - NGINX_HOST=php
 
-  cache-proxy:
-    &varnish
-    image: ${CONTAINER_REGISTRY_BASE}/${CONTAINER_PROJECT_NAME}-varnish:${APP_ENV}
-    build:
-      context: ./api
-      target: api_platform_varnish
-      <<: *cache
-    depends_on:
-      - api
-      - php
-    volumes:
-      - ./api/docker/varnish/conf:/usr/local/etc/varnish:rw,cached
-    tmpfs:
-      - /usr/local/var/varnish:exec
-    ports:
-      - "81:80"
-    environment:
-      - BACKENDS=php
-
         # nlx-outway:
         #   image: ${CONTAINER_REGISTRY_BASE}/${CONTAINER_PROJECT_NAME}-nlx-outway:${APP_ENV}
         #   build:
