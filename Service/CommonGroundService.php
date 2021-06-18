@@ -1271,6 +1271,14 @@ class CommonGroundService
             $url = $resource['@id'];
         }
 
+        if(is_array($url)){
+            $urlString = 'commonground.local';
+            key_exists('component', $url) ? $urlString = "{$url['component']}.$urlString" : null;
+            key_exists('type', $url) ? $urlString = "$urlString/{$url['type']}":null;
+            key_exists('id', $url) ? $urlString = "$urlString/{$url['id']}":null;
+
+            $url = $urlString;
+        }
         // Remove trailing slash
         return rtrim($url, '/');
     }
