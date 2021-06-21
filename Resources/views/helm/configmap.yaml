@@ -1,3 +1,4 @@
+{{ $redisServiceName := printf "%s-redis" }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -11,8 +12,6 @@ metadata:
     app.kubernetes.io/managed-by: {{ .Release.Service }}
 data:
   app-version: {{ .Values.config.version | quote }}
-  app-authorization: {{ .Values.config.authorisation | quote }}
-  app-notification: {{ .Values.config.notification | quote }}
   app-corsAllowOrigin: {{ .Values.php.corsAllowOrigin | quote }}
   cache: {{ .Values.config.cache | quote }}
   debug: {{ .Values.config.debug | quote }}
@@ -21,7 +20,7 @@ data:
   php-service: {{ .Release.Name }}-php  
 
   {{- if .Values.redis.enabled }}
-  redis-host: {{ printf "%s-redis" $redisServiceName | quote }}
+  redis-host: {{ $redisServiceName | quote }}
   redis-port: {{ .Values.redis.redisPort | toString | quote }}
 
-  {{-end }}
+  {{- end }}

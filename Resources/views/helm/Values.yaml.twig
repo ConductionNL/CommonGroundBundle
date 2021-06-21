@@ -7,12 +7,13 @@ config:
   debug: 0
   cache: true
   internal: false
-  notification:
-  authorisation:
 
 security:
   applicationKey: "{{  app_application_key }}"
   secret: ""
+  jwt:
+    id:
+    privateKey:
 
 php:
   repository: docker.io/conduction/protocomponent-php

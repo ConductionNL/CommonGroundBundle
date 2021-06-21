@@ -29,7 +29,7 @@ spec:
               defaultMode: 420
       containers:
         - name: {{ .Release.Name }}-php
-          image: {{ .Values.php.image }}:{{ .Values.php.tag }}
+          image: "{{ .Values.php.image }}:{{ .Values.php.tag }}"
           imagePullPolicy: {{ .Values.php.pullPolicy }}
           ports:
             - containerPort: 9000
@@ -44,8 +44,8 @@ spec:
             - name: JWT_PUBLIC_KEY
               value: '%kernel.project_dir%/config/jwt/public.pem'
             - name: JWT_PASSPHRASE
-              value: 'bafe1dc254b45471754c221081f874aa' #@todo this should be a variable
-          -   name: APP_ENV
+              value: 'bafe1dc254b45471754c221081f874aa'
+            - name: APP_ENV
               value: 'prod'
             - name: TRUSTED_HOSTS
               valueFrom:
@@ -72,16 +72,6 @@ spec:
                   configMapKeyRef:
                       name: {{ template "fullname" . }}
                       key: cache      
-            - name: AUTHORIZATION
-              valueFrom:
-                configMapKeyRef:
-                  name: {{ template "fullname" . }}
-                  key: app-authorization
-            - name: NOTIFICATION
-              valueFrom:
-                configMapKeyRef:
-                  name: {{ template "fullname" . }}
-                  key: app-notification
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
@@ -108,7 +98,7 @@ spec:
                 configMapKeyRef:
                   name: {{ template "fullname" . }}
                   key: redis-port
-            {{-end }}
+            {{- end }}
             - name: APP_URL
               value: https://{{ $.Values.ingress.domain }}/{{ $.Values.ingress.path }}
           resources:
