@@ -1348,7 +1348,7 @@ class CommonGroundService
     public function getComponent(?string $code)
     {
         // Create the list
-        $components = $this->params->get('common_ground.components');
+        $components = $this->params->get('components');
 
         // Get the component
         if (array_key_exists($code, $components)) {
