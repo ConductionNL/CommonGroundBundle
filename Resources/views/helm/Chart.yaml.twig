@@ -1,6 +1,6 @@
-apiVersion: v2
 annotations:
     artifacthub.io/containsSecurityUpdates: "true"
+apiVersion: v2
 appVersion: {{ app_version }}
 description: '{{ app_description }}'
 name: {{ app_name|replace({' ': '-'})|lower }}
