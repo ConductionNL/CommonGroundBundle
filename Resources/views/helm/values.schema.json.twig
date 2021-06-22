@@ -17,8 +17,8 @@
                 "applicationKey": "45c1a4b6-59d3-4a6e-86bf-88a872f35845",
                 "secret": "",
                 "jwt": {
-                    "id": null,
-                    "privateKey": null
+                    "id": "",
+                    "privateKey": ""
                 }
             },
             "php": {
@@ -57,7 +57,7 @@
             "postgresql": {
                 "enabled": true,
                 "imageTag": "10-alpine",
-                "url": null,
+                "url": "",
                 "postgresqlUsername": "example",
                 "postgresqlPassword": "!ChangeMe!",
                 "postgresqlDatabase": "api",
@@ -91,7 +91,7 @@
             "$id": "#/properties/config",
             "type": "object",
             "title": "The config schema",
-            "description": "An explanation about the purpose of this instance.",
+            "description": "",
             "default": {},
             "examples": [
                 {
@@ -112,7 +112,7 @@
                     "$id": "#/properties/config/properties/version",
                     "type": "string",
                     "title": "The version schema",
-                    "description": "An explanation about the purpose of this instance.",
+                    "description": "",
                     "default": "",
                     "examples": [
                         "V1.0"
@@ -122,7 +122,7 @@
                     "$id": "#/properties/config/properties/debug",
                     "type": "integer",
                     "title": "The debug schema",
-                    "description": "An explanation about the purpose of this instance.",
+                    "description": "",
                     "default": 0,
                     "examples": [
                         0
@@ -132,7 +132,7 @@
                     "$id": "#/properties/config/properties/cache",
                     "type": "boolean",
                     "title": "The cache schema",
-                    "description": "An explanation about the purpose of this instance.",
+                    "description": "",
                     "default": false,
                     "examples": [
                         true
@@ -142,7 +142,7 @@
                     "$id": "#/properties/config/properties/internal",
                     "type": "boolean",
                     "title": "The internal schema",
-                    "description": "An explanation about the purpose of this instance.",
+                    "description": "",
                     "default": false,
                     "examples": [
                         false
@@ -155,7 +155,7 @@
             "$id": "#/properties/security",
             "type": "object",
             "title": "The security schema",
-            "description": "An explanation about the purpose of this instance.",
+            "description": "",
             "default": {},
             "examples": [
                 {
@@ -177,7 +177,7 @@
                     "$id": "#/properties/security/properties/applicationKey",
                     "type": "string",
                     "title": "The applicationKey schema",
-                    "description": "An explanation about the purpose of this instance.",
+                    "description": "",
                     "default": "",
                     "examples": [
                         "45c1a4b6-59d3-4a6e-86bf-88a872f35845"
@@ -187,7 +187,7 @@
                     "$id": "#/properties/security/properties/secret",
                     "type": "string",
                     "title": "The secret schema",
-                    "description": "An explanation about the purpose of this instance.",
+                    "description": "",
                     "default": "",
                     "examples": [
                         ""
@@ -197,7 +197,7 @@
                     "$id": "#/properties/security/properties/jwt",
                     "type": "object",
                     "title": "The jwt schema",
-                    "description": "An explanation about the purpose of this instance.",
+                    "description": "",
                     "default": {},
                     "examples": [
                         {
@@ -212,22 +212,22 @@
                     "properties": {
                         "id": {
                             "$id": "#/properties/security/properties/jwt/properties/id",
-                            "type": "null",
+                            "type": "string",
                             "title": "The id schema",
-                            "description": "An explanation about the purpose of this instance.",
-                            "default": null,
+                            "description": "",
+                            "default": "",
                             "examples": [
-                                null
+                                ""
                             ]
                         },
                         "privateKey": {
                             "$id": "#/properties/security/properties/jwt/properties/privateKey",
-                            "type": "null",
+                            "type": "string",
                             "title": "The privateKey schema",
-                            "description": "An explanation about the purpose of this instance.",
-                            "default": null,
+                            "description": "",
+                            "default": "",
                             "examples": [
-                                null
+                                ""
                             ]
                         }
                     },
@@ -240,7 +240,7 @@
             "$id": "#/properties/php",
             "type": "object",
             "title": "The php schema",
-            "description": "An explanation about the purpose of this instance.",
+            "description": "",
             "default": {},
             "examples": [
                 {
@@ -277,7 +277,7 @@
                     "$id": "#/properties/php/properties/repository",
                     "type": "string",
                     "title": "The repository schema",
-                    "description": "An explanation about the purpose of this instance.",
+                    "description": "",
                     "default": "",
                     "examples": [
                         "docker.io/conduction/protocomponent-php"
@@ -287,7 +287,7 @@
                     "$id": "#/properties/php/properties/image",
                     "type": "string",
                     "title": "The image schema",
-                    "description": "An explanation about the purpose of this instance.",
+                    "description": "",
                     "default": "",
                     "examples": [
                         "docker.io/conduction/contactcatalogus-php"
@@ -297,7 +297,7 @@
                     "$id": "#/properties/php/properties/tag",
                     "type": "string",
                     "title": "The tag schema",
-                    "description": "An explanation about the purpose of this instance.",
+                    "description": "",
                     "default": "",
                     "examples": [
                         "latest"
@@ -307,7 +307,7 @@
                     "$id": "#/properties/php/properties/env",
                     "type": "string",
                     "title": "The env schema",
-                    "description": "An explanation about the purpose of this instance.",
+                    "description": "",
                     "default": "",
                     "examples": [
                         "prod"
@@ -317,7 +317,7 @@
                     "$id": "#/properties/php/properties/replicaCount",
                     "type": "integer",
                     "title": "The replicaCount schema",
-                    "description": "An explanation about the purpose of this instance.",
+                    "description": "",
                     "default": 0,
                     "examples": [
                         2
@@ -327,7 +327,7 @@
                     "$id": "#/properties/php/properties/pullPolicy",
                     "type": "string",
                     "title": "The pullPolicy schema",
-                    "description": "An explanation about the purpose of this instance.",
+                    "description": "",
                     "default": "",
                     "examples": [
                         "Always"
@@ -337,7 +337,7 @@
                     "$id": "#/properties/php/properties/trustedHosts",
                     "type": "string",
                     "title": "The trustedHosts schema",
-                    "description": "An explanation about the purpose of this instance.",
+                    "description": "",
                     "default": "",
                     "examples": [
                         "^.+$"
@@ -347,7 +347,7 @@
                     "$id": "#/properties/php/properties/corsAllowOrigin",
                     "type": "array",
                     "title": "The corsAllowOrigin schema",
-                    "description": "An explanation about the purpose of this instance.",
+                    "description": "",
                     "default": [],
                     "examples": [
                         [
@@ -362,7 +362,7 @@
                                 "$id": "#/properties/php/properties/corsAllowOrigin/items/anyOf/0",
                                 "type": "string",
                                 "title": "The first anyOf schema",
-                                "description": "An explanation about the purpose of this instance.",
+                                "description": "",
                                 "default": "",
                                 "examples": [
                                     "*"
@@ -375,7 +375,7 @@
                     "$id": "#/properties/php/properties/trustedProxies",
                     "type": "array",
                     "title": "The trustedProxies schema",
-                    "description": "An explanation about the purpose of this instance.",
+                    "description": "",
                     "default": [],
                     "examples": [
                         [
@@ -391,7 +391,7 @@
                                 "$id": "#/properties/php/properties/trustedProxies/items/anyOf/0",
                                 "type": "string",
                                 "title": "The first anyOf schema",
-                                "description": "An explanation about the purpose of this instance.",
+                                "description": "",
                                 "default": "",
                                 "examples": [
                                     "10.0.0.0/8",
@@ -408,7 +408,7 @@
             "$id": "#/properties/redis",
             "type": "object",
             "title": "The redis schema",
-            "description": "An explanation about the purpose of this instance.",
+            "description": "",
             "default": {},
             "examples": [
                 {
@@ -433,7 +433,7 @@
                     "$id": "#/properties/redis/properties/cluster",
                     "type": "object",
                     "title": "The cluster schema",
-                    "description": "An explanation about the purpose of this instance.",
+                    "description": "",
                     "default": {},
                     "examples": [
                         {
@@ -448,7 +448,7 @@
                             "$id": "#/properties/redis/properties/cluster/properties/enabled",
                             "type": "boolean",
                             "title": "The enabled schema",
-                            "description": "An explanation about the purpose of this instance.",
+                            "description": "",
                             "default": false,
                             "examples": [
                                 false
@@ -461,7 +461,7 @@
                     "$id": "#/properties/redis/properties/redisPort",
                     "type": "integer",
                     "title": "The redisPort schema",
-                    "description": "An explanation about the purpose of this instance.",
+                    "description": "",
                     "default": 0,
                     "examples": [
                         6379
@@ -471,7 +471,7 @@
                     "$id": "#/properties/redis/properties/usePassword",
                     "type": "boolean",
                     "title": "The usePassword schema",
-                    "description": "An explanation about the purpose of this instance.",
+                    "description": "",
                     "default": false,
                     "examples": [
                         false
@@ -481,7 +481,7 @@
                     "$id": "#/properties/redis/properties/enabled",
                     "type": "boolean",
                     "title": "The enabled schema",
-                    "description": "An explanation about the purpose of this instance.",
+                    "description": "",
                     "default": false,
                     "examples": [
                         false
@@ -491,7 +491,7 @@
                     "$id": "#/properties/redis/properties/pullPolicy",
                     "type": "string",
                     "title": "The pullPolicy schema",
-                    "description": "An explanation about the purpose of this instance.",
+                    "description": "",
                     "default": "",
                     "examples": [
                         "IfNotPresent"
@@ -504,7 +504,7 @@
             "$id": "#/properties/nginx",
             "type": "object",
             "title": "The nginx schema",
-            "description": "An explanation about the purpose of this instance.",
+            "description": "",
             "default": {},
             "examples": [
                 {
@@ -527,7 +527,7 @@
                     "$id": "#/properties/nginx/properties/repository",
                     "type": "string",
                     "title": "The repository schema",
-                    "description": "An explanation about the purpose of this instance.",
+                    "description": "",
                     "default": "",
                     "examples": [
                         "docker.io/conduction/protocomponent-nginx"
@@ -537,7 +537,7 @@
                     "$id": "#/properties/nginx/properties/image",
                     "type": "string",
                     "title": "The image schema",
-                    "description": "An explanation about the purpose of this instance.",
+                    "description": "",
                     "default": "",
                     "examples": [
                         "docker.io/conduction/contactcatalogus-nginx"
@@ -547,7 +547,7 @@
                     "$id": "#/properties/nginx/properties/tag",
                     "type": "string",
                     "title": "The tag schema",
-                    "description": "An explanation about the purpose of this instance.",
+                    "description": "",
                     "default": "",
                     "examples": [
                         "latest"
@@ -557,7 +557,7 @@
                     "$id": "#/properties/nginx/properties/pullPolicy",
                     "type": "string",
                     "title": "The pullPolicy schema",
-                    "description": "An explanation about the purpose of this instance.",
+                    "description": "",
                     "default": "",
                     "examples": [
                         "Always"
@@ -567,7 +567,7 @@
                     "$id": "#/properties/nginx/properties/replicaCount",
                     "type": "integer",
                     "title": "The replicaCount schema",
-                    "description": "An explanation about the purpose of this instance.",
+                    "description": "",
                     "default": 0,
                     "examples": [
                         2
@@ -580,13 +580,13 @@
             "$id": "#/properties/postgresql",
             "type": "object",
             "title": "The postgresql schema",
-            "description": "An explanation about the purpose of this instance.",
+            "description": "",
             "default": {},
             "examples": [
                 {
                     "enabled": true,
                     "imageTag": "10-alpine",
-                    "url": null,
+                    "url": "",
                     "postgresqlUsername": "example",
                     "postgresqlPassword": "!ChangeMe!",
                     "postgresqlDatabase": "api",
@@ -611,7 +611,7 @@
                     "$id": "#/properties/postgresql/properties/enabled",
                     "type": "boolean",
                     "title": "The enabled schema",
-                    "description": "An explanation about the purpose of this instance.",
+                    "description": "",
                     "default": false,
                     "examples": [
                         true
@@ -621,7 +621,7 @@
                     "$id": "#/properties/postgresql/properties/imageTag",
                     "type": "string",
                     "title": "The imageTag schema",
-                    "description": "An explanation about the purpose of this instance.",
+                    "description": "",
                     "default": "",
                     "examples": [
                         "10-alpine"
@@ -629,19 +629,19 @@
                 },
                 "url": {
                     "$id": "#/properties/postgresql/properties/url",
-                    "type": "null",
+                    "type": "string",
                     "title": "The url schema",
-                    "description": "An explanation about the purpose of this instance.",
-                    "default": null,
+                    "description": "",
+                    "default": "",
                     "examples": [
-                        null
+                        ""
                     ]
                 },
                 "postgresqlUsername": {
                     "$id": "#/properties/postgresql/properties/postgresqlUsername",
                     "type": "string",
                     "title": "The postgresqlUsername schema",
-                    "description": "An explanation about the purpose of this instance.",
+                    "description": "",
                     "default": "",
                     "examples": [
                         "example"
@@ -651,7 +651,7 @@
                     "$id": "#/properties/postgresql/properties/postgresqlPassword",
                     "type": "string",
                     "title": "The postgresqlPassword schema",
-                    "description": "An explanation about the purpose of this instance.",
+                    "description": "",
                     "default": "",
                     "examples": [
                         "!ChangeMe!"
@@ -661,7 +661,7 @@
                     "$id": "#/properties/postgresql/properties/postgresqlDatabase",
                     "type": "string",
                     "title": "The postgresqlDatabase schema",
-                    "description": "An explanation about the purpose of this instance.",
+                    "description": "",
                     "default": "",
                     "examples": [
                         "api"
@@ -671,7 +671,7 @@
                     "$id": "#/properties/postgresql/properties/persistence",
                     "type": "object",
                     "title": "The persistence schema",
-                    "description": "An explanation about the purpose of this instance.",
+                    "description": "",
                     "default": {},
                     "examples": [
                         {
@@ -686,7 +686,7 @@
                             "$id": "#/properties/postgresql/properties/persistence/properties/enabled",
                             "type": "boolean",
                             "title": "The enabled schema",
-                            "description": "An explanation about the purpose of this instance.",
+                            "description": "",
                             "default": false,
                             "examples": [
                                 true
@@ -699,7 +699,7 @@
                     "$id": "#/properties/postgresql/properties/pullPolicy",
                     "type": "string",
                     "title": "The pullPolicy schema",
-                    "description": "An explanation about the purpose of this instance.",
+                    "description": "",
                     "default": "",
                     "examples": [
                         "IfNotPresent"
@@ -712,7 +712,7 @@
             "$id": "#/properties/ingress",
             "type": "object",
             "title": "The ingress schema",
-            "description": "An explanation about the purpose of this instance.",
+            "description": "",
             "default": {},
             "examples": [
                 {
@@ -735,7 +735,7 @@
                     "$id": "#/properties/ingress/properties/enabled",
                     "type": "boolean",
                     "title": "The enabled schema",
-                    "description": "An explanation about the purpose of this instance.",
+                    "description": "",
                     "default": false,
                     "examples": [
                         false
@@ -745,7 +745,7 @@
                     "$id": "#/properties/ingress/properties/hostname",
                     "type": "string",
                     "title": "The hostname schema",
-                    "description": "An explanation about the purpose of this instance.",
+                    "description": "",
                     "default": "",
                     "examples": [
                         "contactcatalogus.local"
@@ -755,7 +755,7 @@
                     "$id": "#/properties/ingress/properties/path",
                     "type": "string",
                     "title": "The path schema",
-                    "description": "An explanation about the purpose of this instance.",
+                    "description": "",
                     "default": "",
                     "examples": [
                         "/"
@@ -765,7 +765,7 @@
                     "$id": "#/properties/ingress/properties/annotations",
                     "type": "null",
                     "title": "The annotations schema",
-                    "description": "An explanation about the purpose of this instance.",
+                    "description": "",
                     "default": null,
                     "examples": [
                         null
@@ -775,7 +775,7 @@
                     "$id": "#/properties/ingress/properties/tls",
                     "type": "null",
                     "title": "The tls schema",
-                    "description": "An explanation about the purpose of this instance.",
+                    "description": "",
                     "default": null,
                     "examples": [
                         null
@@ -788,7 +788,7 @@
             "$id": "#/properties/resources",
             "type": "object",
             "title": "The resources schema",
-            "description": "An explanation about the purpose of this instance.",
+            "description": "",
             "default": {},
             "examples": [
                 {}
