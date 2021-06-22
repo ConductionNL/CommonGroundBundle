@@ -167,11 +167,7 @@
                     }
                 }
             ],
-            "required": [
-                "applicationKey",
-                "secret",
-                "jwt"
-            ],
+            "required": [],
             "properties": {
                 "applicationKey": {
                     "$id": "#/properties/security/properties/applicationKey",
@@ -205,10 +201,7 @@
                             "privateKey": null
                         }
                     ],
-                    "required": [
-                        "id",
-                        "privateKey"
-                    ],
+                    "required": [],
                     "properties": {
                         "id": {
                             "$id": "#/properties/security/properties/jwt/properties/id",
@@ -599,10 +592,6 @@
             "required": [
                 "enabled",
                 "imageTag",
-                "url",
-                "postgresqlUsername",
-                "postgresqlPassword",
-                "postgresqlDatabase",
                 "persistence",
                 "pullPolicy"
             ],
@@ -726,9 +715,7 @@
             "required": [
                 "enabled",
                 "hostname",
-                "path",
-                "annotations",
-                "tls"
+                "path"
             ],
             "properties": {
                 "enabled": {
