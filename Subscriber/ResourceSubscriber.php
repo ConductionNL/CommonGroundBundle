@@ -43,7 +43,7 @@ class ResourceSubscriber implements EventSubscriberInterface
         $result = $event->getControllerResult();
         $route = $event->getRequest()->attributes->get('_route');
 
-        if ($result && $this->params->get('app_type') != 'application') {
+        if ($result && is_object($result)) {
             $type = explode('\\', get_class($result));
             $type = $this->inflector->pluralize($this->inflector->tableize(end($type)));
         } else {
