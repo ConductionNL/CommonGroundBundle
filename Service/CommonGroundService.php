@@ -1140,24 +1140,12 @@ class CommonGroundService
     /*
      * Finds @id keys and replaceses the relative link with an absolute link
      */
-    private function convertAtId(array $object, array $parsedUrl)
+    private function convertAtId(array $object, array $parsedUrl): array
     {
         if (array_key_exists('@id', $object)) {
-            if (
-                $this->params->has('app_subpath_routing') &&
-                ($this->params->get('app_subpath_routing') && $this->params->get('app_subpath_routing') !== 'false') &&
-                (!$this->params->get('app_internal') || $this->params->get('app_internal') === 'false')
-            ) {
-                $component = $this->getComponentFromUrl($parsedUrl);
-                if (strpos($component, 'http') !== false) {
-                    $componentUrl = $component;
-                } else {
-                    $componentUrl = $this->cleanUrl(['component' => $component]);
-                }
-                $object['@id'] = $componentUrl.$object['@id'];
-            } else {
-                $object['@id'] = $parsedUrl['scheme'].'://'.$parsedUrl['host'].$object['@id'];
-            }
+            $atId = $object['@id'];
+            $object['@id'] = "{$parsedUrl['scheme']}://{$parsedUrl['host']}/".ltrim(HelperService::replaceOverlap(ltrim($parsedUrl['path'], '/'), ltrim($atId, '/')), '/');
+            $parsedUrl['path'] = ltrim(HelperService::removeOverlap(ltrim($parsedUrl['path'], '/'), ltrim($atId, '/')), '/');
         }
         foreach ($object as $key => $subObject) {
             if (is_array($subObject)) {
@@ -1271,11 +1259,11 @@ class CommonGroundService
             $url = $resource['@id'];
         }
 
-        if(is_array($url)){
+        if (is_array($url)) {
             $urlString = 'commonground.local';
             key_exists('component', $url) ? $urlString = "{$url['component']}.$urlString" : null;
-            key_exists('type', $url) ? $urlString = "$urlString/{$url['type']}":null;
-            key_exists('id', $url) ? $urlString = "$urlString/{$url['id']}":null;
+            key_exists('type', $url) ? $urlString = "$urlString/{$url['type']}" : null;
+            key_exists('id', $url) ? $urlString = "$urlString/{$url['id']}" : null;
 
             $url = $urlString;
         }
