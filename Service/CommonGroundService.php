@@ -1144,8 +1144,6 @@ class CommonGroundService
     {
         if (array_key_exists('@id', $object)) {
             $atId = $object['@id'];
-            var_dump($parsedUrl['path']);
-            var_dump($atId);
             $object['@id'] = "{$parsedUrl['scheme']}://{$parsedUrl['host']}/".ltrim(HelperService::replaceOverlap(ltrim($parsedUrl['path'], '/'), ltrim($atId, '/')), '/');
             $parsedUrl['path'] = ltrim(HelperService::removeOverlap(ltrim($parsedUrl['path'], '/'), ltrim($atId, '/')), '/');
         }

@@ -21,7 +21,6 @@ class HelperService
                 $results[] = $subString1;
             }
         }
-        var_Dump($results);
         return $results;
     }
 
