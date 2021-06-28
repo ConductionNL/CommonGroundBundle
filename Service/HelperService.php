@@ -14,7 +14,7 @@ class HelperService
 
         $maximum = $stringLength1>$stringLength2?$stringLength2:$stringLength1;
 
-        for ($iterator = 1; $iterator < $maximum; $iterator++){
+        for ($iterator = 0; $iterator < $maximum; $iterator++){
             $subString1 = substr($string1, -$iterator);
             $subString2 = substr($string2, 0, $iterator);
             if($subString1 == $subString2){
