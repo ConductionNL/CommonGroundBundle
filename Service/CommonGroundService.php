@@ -1143,21 +1143,7 @@ class CommonGroundService
     private function convertAtId(array $object, array $parsedUrl)
     {
         if (array_key_exists('@id', $object)) {
-            if (
-                $this->params->has('app_subpath_routing') &&
-                ($this->params->get('app_subpath_routing') && $this->params->get('app_subpath_routing') !== 'false') &&
-                (!$this->params->get('app_internal') || $this->params->get('app_internal') === 'false')
-            ) {
-                $component = $this->getComponentFromUrl($parsedUrl);
-                if (strpos($component, 'http') !== false) {
-                    $componentUrl = $component;
-                } else {
-                    $componentUrl = $this->cleanUrl(['component' => $component]);
-                }
-                $object['@id'] = $componentUrl.$object['@id'];
-            } else {
-                $object['@id'] = $parsedUrl['scheme'].'://'.$parsedUrl['host'].$object['@id'];
-            }
+            $object['@id'] = $parsedUrl['scheme'].'://'.$parsedUrl['host'].HelperService::replaceOverlap($parsedUrl['path'], $object['@id']);
         }
         foreach ($object as $key => $subObject) {
             if (is_array($subObject)) {
