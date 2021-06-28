@@ -21,6 +21,8 @@ class HelperService
                 $results[] = $subString1;
             }
         }
+
+
         return $results;
     }
 
@@ -35,5 +37,14 @@ class HelperService
             $overlap = '';
         }
         return $string1.$overlap.$string2;
+    }
+    
+    public static function removeOverlap(string $string1, string $string2): ?string
+    {
+        if($overlap = HelperService::findOverlap($string1, $string2)){
+            $overlap = $overlap[count($overlap)-1];
+            $string1 = substr($string1, 0, -strlen($overlap));
+        }
+        return $string1;
     }
 }
