@@ -31,8 +31,9 @@ class HelperService
             $string1 = substr($string1, 0, -strlen($overlap));
             $string2 = substr($string2, strlen($overlap));
 
-            return $string1.$overlap.$string2;
+        } else {
+            $overlap = '';
         }
-        return null;
+        return $string1.$overlap.$string2;
     }
 }

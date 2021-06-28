@@ -1140,10 +1140,10 @@ class CommonGroundService
     /*
      * Finds @id keys and replaceses the relative link with an absolute link
      */
-    private function convertAtId(array $object, array $parsedUrl)
+    private function convertAtId(array $object, array $parsedUrl): array
     {
         if (array_key_exists('@id', $object)) {
-            $object['@id'] = $parsedUrl['scheme'].'://'.$parsedUrl['host'].HelperService::replaceOverlap($parsedUrl['path'], $object['@id']);
+            $object['@id'] = "{$parsedUrl['scheme']}://{$parsedUrl['host']}/".HelperService::replaceOverlap($parsedUrl['path'], $object['@id']);
         }
         foreach ($object as $key => $subObject) {
             if (is_array($subObject)) {
