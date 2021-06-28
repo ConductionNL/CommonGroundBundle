@@ -1143,7 +1143,7 @@ class CommonGroundService
     private function convertAtId(array $object, array $parsedUrl): array
     {
         if (array_key_exists('@id', $object)) {
-            $object['@id'] = "{$parsedUrl['scheme']}://{$parsedUrl['host']}/".HelperService::replaceOverlap($parsedUrl['path'], $object['@id']);
+            $object['@id'] = "{$parsedUrl['scheme']}://{$parsedUrl['host']}/".ltrim(HelperService::replaceOverlap($parsedUrl['path'], $object['@id']), '/');
         }
         foreach ($object as $key => $subObject) {
             if (is_array($subObject)) {
