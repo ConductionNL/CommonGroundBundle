@@ -117,7 +117,7 @@ class VrcService
             }
 
             // lets check if the component is a commonground resource
-            if (is_array($value) && array_key_exists('iri', $property) && ($property['format'] == 'url' || $property['format'] == 'uri') && $component = explode('/', $property['iri'])) {
+            if (is_array($value) && is_array($property) && array_key_exists('iri', $property) && ($property['format'] == 'url' || $property['format'] == 'uri') && $component = explode('/', $property['iri'])) {
                 //&& count($component) == 2
 
                 // Lets support arrays
