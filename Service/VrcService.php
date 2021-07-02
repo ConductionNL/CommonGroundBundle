@@ -268,7 +268,7 @@ class VrcService
          */
         foreach ($requestCalendars as $calendar) {
             // create or update  event
-            $events = $this->commonGroundService->getResourceList(['component' => 'arc', 'type' => 'events'], ['calendar.id' =>$calendar, 'resource' => $request['@id']])['hydra:member'];
+            $events = $this->commonGroundService->getResourceList(['component' => 'arc', 'type' => 'events'], ['calendar.id' => $this->commonGroundService->getUuidFromUrl($calendar), 'resource' => $request['@id']])['hydra:member'];
 
             if (count($events) > 0) {
                 $event = $events[0];
@@ -283,7 +283,7 @@ class VrcService
                 $event['description'] = $requestType['name'];
                 $event['organization'] = $request['organization'];
                 $event['resource'] = $request['@id'];
-                $event['calendar'] = $calendar;
+                $event['calendar'] = '/calendars/' . $this->commonGroundService->getUuidFromUrl($calendar);
                 $event['startDate'] = $startDate->format('Y-m-d H:i:s');
                 $event['endDate'] = $endDate->format('Y-m-d H:i:s');
                 $event['priority'] = 1;
