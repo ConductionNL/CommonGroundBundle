@@ -136,6 +136,11 @@ class VrcService
                     if ($this->checkIfEmpty($value)) {
                         unset($request['properties'][$key]);
                     } elseif (is_array($value) || !$this->commonGroundService->isResource($value)) {
+                        foreach ($value as $key2 => $prop) {
+                            if (empty($prop)) {
+                                unset($value[$key2]);
+                            }
+                        }
                         $createdResource = $this->commonGroundService->saveResource($value, ['component' => $component[0], 'type' => $component[1]]);
                         if (is_array($createdResource) && key_exists('@id', $createdResource)) {
                             $request['properties'][$key] = $createdResource['@id'];
