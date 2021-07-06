@@ -60,6 +60,7 @@ postgresql:
 
 ingress:
   enabled: false
+  type: "nginx"
   hostname: {{ app_name_technical }}.local
   path: /
   annotations:
