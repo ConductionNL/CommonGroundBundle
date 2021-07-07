@@ -127,7 +127,7 @@ class CommongroundProvider implements UserProviderInterface
             case 'person':
                 $resident = $this->checkResidence('person', $user, null);
 
-                return new CommongroundUser($user['naam']['voornamen'].' '.$user['naam']['geslachtsnaam'], $user['id'], $user['naam']['voornamen'].' '.$user['naam']['geslachtsnaam'], null, $user['roles'], $person, null, 'person', $resident);
+                return new CommongroundUser($user['naam']['voornamen'].' '.$user['naam']['geslachtsnaam'], $user['naam']['voornamen'], $user['naam']['voornamen'].' '.$user['naam']['geslachtsnaam'], null, $user['roles'], $person, null, 'person', $resident);
             case 'organization':
                 $resident = $this->checkResidence('organization', $user, $kvk);
 
