@@ -8,6 +8,10 @@ use Conduction\CommonGroundBundle\Event\CommonGroundEvents;
 use Conduction\CommonGroundBundle\Event\CommongroundUpdateEvent;
 use DateInterval;
 use GuzzleHttp\Client;
+use Jose\Component\Core\AlgorithmManager;
+use Jose\Component\Core\JWK;
+use Jose\Component\Signature\Algorithm\HS256;
+use Jose\Component\Signature\Serializer\CompactSerializer;
 use Ramsey\Uuid\Uuid;
 use Symfony\Component\Cache\Adapter\AdapterInterface as CacheInterface;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
@@ -1383,7 +1387,7 @@ class CommonGroundService
         if ($component && array_key_exists('auth', $component)) {
             switch ($component['auth']) {
                 case 'jwt':
-                    $headers['Authorization'] = 'Bearer '.$this->getJwtToken($component['code']);
+                    $headers['Authorization'] = 'Bearer '.$this->createJwtToken($component['code']);
                     break;
                 case 'username-password':
                     $auth = [$component['username'], $component['password']];
@@ -1535,6 +1539,46 @@ class CommonGroundService
 
         // Return JWT
         return $base64UrlHeader.'.'.$base64UrlPayload.'.'.$base64UrlSignature;
+    }
+
+    /*
+ * Create a JWT token from Component settings
+ *
+ * @param array $component The code of the component
+ * @param array The JWT token
+ */
+    public function createJwtToken(?array $component)
+    {
+
+        if(!isset($component['id']) || !isset($component['secret'])) {
+            throw new HttpException('500', 'Dependency not valid for method: JWT');
+        }
+
+        $now = new \DateTime('now');
+        $jwsBuilder = new \Jose\Component\Signature\JWSBuilder(new AlgorithmManager([new HS256()]));
+
+        $jwk = new JWK([
+            'kty' => 'oct',
+            'k'   => base64_encode(addslashes($component['secret'])),
+        ]);
+
+        $payload = json_encode([
+            'iss'                    => $component['id'],
+            'iat'                    => $now->getTimestamp(),
+            'client_id'              => $component['id'],
+            'user_id'                => $this->params->get('app_name'),
+            'user_respresentation'   => $this->params->get('app_name'),
+        ]);
+
+        $jws = $jwsBuilder
+            ->create()
+            ->withPayload($payload)
+            ->addSignature($jwk, ['alg' => 'HS256'])
+            ->build();
+
+        $serializer = new CompactSerializer();
+
+        return $serializer->serialize($jws, 0);
     }
 
     /*
