@@ -1387,7 +1387,7 @@ class CommonGroundService
         if ($component && array_key_exists('auth', $component)) {
             switch ($component['auth']) {
                 case 'jwt':
-                    $headers['Authorization'] = 'Bearer '.$this->createJwtToken($component['code']);
+                    $headers['Authorization'] = 'Bearer '.$this->createJwtToken($component);
                     break;
                 case 'username-password':
                     $auth = [$component['username'], $component['password']];
