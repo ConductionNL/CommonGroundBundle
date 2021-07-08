@@ -1373,8 +1373,8 @@ class CommonGroundService
     )
     {
 
+        $auth = false;
         // Merge header overwrites into the default headers
-
         $headers = array_merge($this->headers, $headers);
         // Component specific congiguration
         if ($component && array_key_exists('accept', $component)) {
@@ -1389,7 +1389,7 @@ class CommonGroundService
                     $auth = [$component['username'], $component['password']];
                     break;
                 case 'apikey':
-                    $auth = $component['apikey'];
+                    $headers['Authorization'] = $component['apikey'];
                     break;
             }
         }
