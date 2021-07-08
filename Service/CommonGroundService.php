@@ -1327,6 +1327,111 @@ class CommonGroundService
         return $host;
     }
 
+
+    public function getUrlFromEndpoint($endpoint, $autowire)
+    {
+        if (is_array($endpoint) && array_key_exists('component', $endpoint)) {
+            $component = $this->getComponent($endpoint['component']);
+            if (array_key_exists('accept', $endpoint)) {
+                $component['accept'] = $endpoint['accept'];
+            }
+        } else {
+            if (!is_array($endpoint) && $endpoint != null && $componentUrl = $this->isCommonGround($endpoint)) {
+                $endpoint = $componentUrl;
+                $component = $this->getComponent($endpoint['component']);
+                if (array_key_exists('accept', $endpoint)) {
+                    $component['accept'] = $endpoint['accept'];
+                }
+            } else {
+                $component = [];
+            }
+        }
+
+        return $this->cleanUrl($endpoint, false, $autowire);
+    }
+
+
+    /*
+     * Calls a pre-configures commonground service
+     *
+     * $component array Eather an endpoint in the form of an url or and component as array to wisch to post
+     * $content string the content of the call
+     * $query array optional query paramaters
+     * $query array optional overwrites of deafault headers
+     * $async boolean determens whether to peform the api cal asynchronus
+     *
+     * return Gu A guzzle responce object
+     */
+    public function callService(
+        array $component,
+        string $url,
+        string $content ,
+        $query = [],
+        $headers = [],
+        $async = false,
+        string $type = 'GET'
+    )
+    {
+
+        // Merge header overwrites into the default headers
+
+        $headers = array_merge($this->headers, $headers);
+        // Component specific congiguration
+        if ($component && array_key_exists('accept', $component)) {
+            $headers['Accept'] = $component['accept'];
+        }
+        if ($component && array_key_exists('auth', $component)) {
+            switch ($component['auth']) {
+                case 'jwt':
+                    $headers['Authorization'] = 'Bearer '.$this->getJwtToken($component['code']);
+                    break;
+                case 'username-password':
+                    $auth = [$component['username'], $component['password']];
+                    break;
+                case 'apikey':
+                    $auth = $component['apikey'];
+                    break;
+            }
+        }
+        // Lets make sure the start and limit are always integer
+        if (defined($this->request) && $this->request) {
+            if ($start = $this->request->query->get('start')) {
+                $query['start'] = (int) $start;
+            }
+            if ($limit = $this->request->query->get('limit')) {
+                $query['limit'] = (int) $limit;
+            }
+        }
+        // Content mee sturen
+        if (!$async) {
+            try {
+                $response = $this->client->request($type, $url, [
+                    'body'        => $content,
+                    'query'       => $query,
+                    'headers'     => $headers,
+                    'auth'        => $auth,
+                    'http_errors' => true,
+                ]);
+            } catch (\GuzzleHttp\Exception\ClientException $e) {
+                throw new HttpException($e->getCode(), $e->getMessage());
+            }
+        } else {
+            try {
+                $response = $this->client->requestAsync($type, $url, [
+                    'body'        => $content,
+                    'query'       => $query,
+                    'headers'     => $headers,
+                    'auth'        => $auth,
+                    'http_errors' => true,
+                ]);
+            } catch (\GuzzleHttp\Exception\ClientException $e) {
+                throw new HttpException($e->getCode(), $e->getMessage());
+            }
+        }
+
+        return $response;
+    }
+
     /*
      * Get Component settings from the configuration
      *
