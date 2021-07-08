@@ -1417,7 +1417,7 @@ class CommonGroundService
                     'http_errors' => true,
                 ]);
             } catch (\GuzzleHttp\Exception\ClientException $e) {
-                throw new HttpException($e->getCode(), $e->getMessage());
+                return ['error' => $e->getResponse()->getBody()->getContents()];
             }
         } else {
             try {
@@ -1429,7 +1429,7 @@ class CommonGroundService
                     'http_errors' => true,
                 ]);
             } catch (\GuzzleHttp\Exception\ClientException $e) {
-                throw new HttpException($e->getCode(), $e->getMessage());
+                return ['error' => $e->getResponse()->getBody()->getContents()];
             }
         }
 
