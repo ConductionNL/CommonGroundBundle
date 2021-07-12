@@ -29,7 +29,7 @@ class AuthenticationService
             $rsa = base64_decode($this->parameterBag->get('jwt.privateKey'));
         }
         $filename = $this->fileService->writeFile('privateKey', $rsa);
-        $jwk = new JWKFactory::createFromKeyFile(
+        $jwk = JWKFactory::createFromKeyFile(
             $filename,
             null,
             [
