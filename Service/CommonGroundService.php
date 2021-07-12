@@ -70,6 +70,8 @@ class CommonGroundService
      */
     private $local;
 
+    private AuthenticationService $authenticationService;
+
     public function __construct(
         ParameterBagInterface $params,
         SessionInterface $session,
@@ -136,6 +138,8 @@ class CommonGroundService
         if (!empty($this->request)) {
             $this->local = $this->request->getLocale();
         }
+
+        $this->authenticationService = new AuthenticationService($params);
     }
 
     public function isCommonGround(string $url)
@@ -248,15 +252,7 @@ class CommonGroundService
         if ($component && array_key_exists('accept', $component)) {
             $headers['Accept'] = $component['accept'];
         }
-        if ($component && array_key_exists('auth', $component)) {
-            switch ($component['auth']) {
-                case 'jwt':
-                    $headers['Authorization'] = 'Bearer '.$this->getJwtToken($component['code']);
-                    break;
-                case 'username-password':
-                    $auth = [$component['username'], $component['password']];
-            }
-        }
+
 
         if (defined($this->request) && $this->request) {
             if ($start = $this->request->query->get('start')) {
@@ -267,30 +263,25 @@ class CommonGroundService
             }
         }
 
+        $requestOption = $this->authenticationService->setAuthorization([
+            'query'       => $query,
+            'headers'     => $headers,
+            'auth'        => $auth,
+            'http_errors' => $error,
+        ], $component);
+
         if (!$async) {
             try {
-                $response = $this->client->request('GET', $url, [
-                    'query'       => $query,
-                    'headers'     => $headers,
-                    'auth'        => $auth,
-                    'http_errors' => $error,
-                ]);
+                $response = $this->client->request('GET', $url, $requestOption);
             } catch (\GuzzleHttp\Exception\ClientException $e) {
 //                var_dump($e->getResponse()->getBody()->getContents()); //Log::error($e->getResponse()->getBody()->getContents());
-
                 throw $e;
             }
         } else {
             try {
-                $response = $this->client->requestAsync('GET', $url, [
-                    'query'       => $query,
-                    'headers'     => $headers,
-                    'auth'        => $auth,
-                    'http_errors' => $error,
-                ]);
+                $response = $this->client->requestAsync('GET', $url, $requestOption);
             } catch (\GuzzleHttp\Exception\ClientException $e) {
 //                var_dump($e->getResponse()->getBody()->getContents()); //Log::error($e->getResponse()->getBody()->getContents());
-
                 throw $e;
             }
         }
@@ -394,30 +385,15 @@ class CommonGroundService
         if ($component && array_key_exists('accept', $component)) {
             $headers['Accept'] = $component['accept'];
         }
-        if ($component && array_key_exists('auth', $component)) {
-            switch ($component['auth']) {
-                case 'jwt-HS256':
-                case 'jwt-RS512':
-                case 'jwt':
-                    $headers['Authorization'] = 'Bearer '.$this->getJwtToken($component['code']);
-                    break;
-                case 'username-password':
-                    $auth = [$component['username'], $component['password']];
-                    break;
-                case 'apikey':
-                default:
-                    $headers['Authorization'] = $component['apikey'];
-                    break;
-            }
-        }
+        $requestOptions = $this->authenticationService->setAuthorization([
+            'query'       => $query,
+            'headers'     => $headers,
+            'auth'        => $auth,
+            'http_errors' => $error,
+        ], $component);
         if (!$async) {
             try {
-                $response = $this->client->request('GET', $url, [
-                    'query'       => $query,
-                    'headers'     => $headers,
-                    'auth'        => $auth,
-                    'http_errors' => $error,
-                ]);
+                $response = $this->client->request('GET', $url, $requestOptions);
             } catch (\GuzzleHttp\Exception\ClientException $e) {
                 // here's the good stuff
 //                var_dump($e->getResponse()->getBody()->getContents()); //Log::error($e->getResponse()->getBody()->getContents());
@@ -426,12 +402,7 @@ class CommonGroundService
             }
         } else {
             try {
-                $response = $this->client->requestAsync('GET', $url, [
-                    'query'       => $query,
-                    'headers'     => $headers,
-                    'auth'        => $auth,
-                    'http_errors' => $error,
-                ]);
+                $response = $this->client->requestAsync('GET', $url, $requestOptions);
             } catch (\GuzzleHttp\Exception\ClientException $e) {
                 // here's the good stuff
 //                var_dump($e->getResponse()->getBody()->getContents()); //Log::error($e->getResponse()->getBody()->getContents());
@@ -528,24 +499,14 @@ class CommonGroundService
         if ($component && array_key_exists('accept', $component)) {
             $headers['Accept'] = $component['accept'];
         }
-        if ($component && array_key_exists('auth', $component)) {
-            switch ($component['auth']) {
-                case 'jwt-HS256':
-                case 'jwt-RS512':
-                case 'jwt':
-                    $headers['Authorization'] = 'Bearer '.$this->getJwtToken($component['code']);
-                    break;
-                case 'username-password':
-                    $auth = [$component['username'], $component['password']];
-                    break;
-                case 'apikey':
-                default:
-                    $headers['Authorization'] = $component['apikey'];
-                    break;
-            }
-        }
 
         $resource = $this->cleanResource($resource);
+        $requestOptions = $this->authenticationService->setAuthorization([
+            'body'        => json_encode($resource),
+            'headers'     => $headers,
+            'auth'        => $auth,
+            'http_errors' => $error,
+        ], $component);
 
         //Unset properties without values. To force empty, set an empty array ([])
         foreach ($resource as $key => $value) {
@@ -556,12 +517,7 @@ class CommonGroundService
 
         if (!$async) {
             try {
-                $response = $this->client->request('PUT', $url, [
-                    'body'        => json_encode($resource),
-                    'headers'     => $headers,
-                    'auth'        => $auth,
-                    'http_errors' => $error,
-                ]);
+                $response = $this->client->request('PUT', $url, $requestOptions);
             } catch (\GuzzleHttp\Exception\ClientException $e) {
                 // here's the good stuff
 //                var_dump($e->getResponse()->getBody()->getContents()); //Log::error($e->getResponse()->getBody()->getContents());
@@ -570,12 +526,7 @@ class CommonGroundService
             }
         } else {
             try {
-                $response = $this->client->requestAsync('PUT', $url, [
-                    'body'        => json_encode($resource),
-                    'headers'     => $headers,
-                    'auth'        => $auth,
-                    'http_errors' => $error,
-                ]);
+                $response = $this->client->requestAsync('PUT', $url, $requestOptions);
             } catch (\GuzzleHttp\Exception\ClientException $e) {
                 // here's the good stuff
 //                var_dump($e->getResponse()->getBody()->getContents()); //Log::error($e->getResponse()->getBody()->getContents());
@@ -661,33 +612,18 @@ class CommonGroundService
         if ($component && array_key_exists('accept', $component)) {
             $headers['Accept'] = $component['accept'];
         }
-        if ($component && array_key_exists('auth', $component)) {
-            switch ($component['auth']) {
-                case 'jwt-HS256':
-                case 'jwt-RS512':
-                case 'jwt':
-                    $headers['Authorization'] = 'Bearer '.$this->getJwtToken($component['code']);
-                    break;
-                case 'username-password':
-                    $auth = [$component['username'], $component['password']];
-                    break;
-                case 'apikey':
-                default:
-                    $headers['Authorization'] = $component['apikey'];
-                    break;
-            }
-        }
 
         $resource = $this->cleanResource($resource);
+        $requestOptions = $this->authenticationService->setAuthorization([
+            'body'        => json_encode($resource),
+            'headers'     => $headers,
+            'auth'        => $auth,
+            'http_errors' => $error,
+        ], $component);
 
         if (!$async) {
             try {
-                $response = $this->client->request('POST', $url, [
-                    'body'        => json_encode($resource),
-                    'headers'     => $headers,
-                    'auth'        => $auth,
-                    'http_errors' => $error,
-                ]);
+                $response = $this->client->request('POST', $url, $requestOptions);
             } catch (\GuzzleHttp\Exception\ClientException $e) {
                 // here's the good stuff
 //                var_dump($e->getResponse()->getBody()->getContents()); //Log::error($e->getResponse()->getBody()->getContents());
@@ -696,12 +632,7 @@ class CommonGroundService
             }
         } else {
             try {
-                $response = $this->client->requestAsync('POST', $url, [
-                    'body'        => json_encode($resource),
-                    'headers'     => $headers,
-                    'auth'        => $auth,
-                    'http_errors' => $error,
-                ]);
+                $response = $this->client->requestAsync('POST', $url, $requestOptions);
             } catch (\GuzzleHttp\Exception\ClientException $e) {
                 // here's the good stuff
 //                var_dump($e->getResponse()->getBody()->getContents());
@@ -786,29 +717,14 @@ class CommonGroundService
         if ($component && array_key_exists('accept', $component)) {
             $headers['Accept'] = $component['accept'];
         }
-        if ($component && array_key_exists('auth', $component)) {
-            switch ($component['auth']) {
-                case 'jwt-HS256':
-                case 'jwt-RS512':
-                case 'jwt':
-                    $headers['Authorization'] = 'Bearer '.$this->getJwtToken($component['code']);
-                    break;
-                case 'username-password':
-                    $auth = [$component['username'], $component['password']];
-                    break;
-                case 'apikey':
-                default:
-                    $headers['Authorization'] = $component['apikey'];
-                    break;
-            }
-        }
+        $requestOptions = $this->authenticationService->setAuthorization([
+            'headers'     => $headers,
+            'auth'        => $auth,
+        ], $component);
 
         if (!$async) {
             try {
-                $response = $this->client->request('DELETE', $url, [
-                    'headers' => $headers,
-                    'auth'    => $auth,
-                ]);
+                $response = $this->client->request('DELETE', $url, $requestOptions);
             } catch (\GuzzleHttp\Exception\ClientException $e) {
                 // here's the good stuff
 //                var_dump($e->getResponse()->getBody()->getContents()); //Log::error($e->getResponse()->getBody()->getContents());
@@ -817,10 +733,7 @@ class CommonGroundService
             }
         } else {
             try {
-                $response = $this->client->requestAsync('DELETE', $url, [
-                    'headers' => $headers,
-                    'auth'    => $auth,
-                ]);
+                $response = $this->client->requestAsync('DELETE', $url, $requestOptions);
             } catch (\GuzzleHttp\Exception\ClientException $e) {
                 // here's the good stuff
 //                var_dump($e->getResponse()->getBody()->getContents()); //Log::error($e->getResponse()->getBody()->getContents());
@@ -1384,19 +1297,6 @@ class CommonGroundService
         if ($component && array_key_exists('accept', $component)) {
             $headers['Accept'] = $component['accept'];
         }
-        if ($component && array_key_exists('auth', $component)) {
-            switch ($component['auth']) {
-                case 'jwt':
-                    $headers['Authorization'] = 'Bearer '.$this->createJwtToken($component);
-                    break;
-                case 'username-password':
-                    $auth = [$component['username'], $component['password']];
-                    break;
-                case 'apikey':
-                    $headers['Authorization'] = $component['apikey'];
-                    break;
-            }
-        }
         // Lets make sure the start and limit are always integer
         if (defined($this->request) && $this->request) {
             if ($start = $this->request->query->get('start')) {
@@ -1406,28 +1306,25 @@ class CommonGroundService
                 $query['limit'] = (int) $limit;
             }
         }
+
+        $requestOptions = $this->authenticationService->setAuthorization([
+            'body'        => $content,
+            'query'       => $query,
+            'headers'     => $headers,
+            'auth'        => $auth,
+            'http_errors' => true,
+        ], $component);
+
         // Content mee sturen
         if (!$async) {
             try {
-                $response = $this->client->request($type, $url, [
-                    'body'        => $content,
-                    'query'       => $query,
-                    'headers'     => $headers,
-                    'auth'        => $auth,
-                    'http_errors' => true,
-                ]);
+                $response = $this->client->request($type, $url, $requestOptions);
             } catch (\GuzzleHttp\Exception\ClientException $e) {
                 return ['error' => $e->getResponse()->getBody()->getContents()];
             }
         } else {
             try {
-                $response = $this->client->requestAsync($type, $url, [
-                    'body'        => $content,
-                    'query'       => $query,
-                    'headers'     => $headers,
-                    'auth'        => $auth,
-                    'http_errors' => true,
-                ]);
+                $response = $this->client->requestAsync($type, $url, $requestOptions);
             } catch (\GuzzleHttp\Exception\ClientException $e) {
                 return ['error' => $e->getResponse()->getBody()->getContents()];
             }
@@ -1504,81 +1401,6 @@ class CommonGroundService
      */
     public function getComponentResources(string $component, $force = false)
     {
-    }
-
-    /*
-     * Create a JWT token from Component settings
-     *
-     * @param array $component The code of the component
-     * @param array The JWT token
-     */
-    public function getJwtToken(?string $component)
-    {
-        $component = $this->getComponent($component);
-
-        $userId = '';
-        $userRepresentation = '';
-
-        // Create token header as a JSON string
-        $header = json_encode(['typ' => 'JWT', 'alg' => 'HS256', 'client_identifier' => $component['id']]);
-
-        // Create token payload as a JSON string
-        $payload = json_encode(['iss' => $component['id'], 'client_id' => $component['id'], 'user_id' => $userId, 'user_representation' => $userRepresentation, 'iat' => time()]);
-
-        // Encode Header to Base64Url String
-        $base64UrlHeader = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($header));
-
-        // Encode Payload to Base64Url String
-        $base64UrlPayload = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($payload));
-
-        // Create Signature Hash
-        $signature = hash_hmac('sha256', $base64UrlHeader.'.'.$base64UrlPayload, $component['secret'], true);
-
-        // Encode Signature to Base64Url String
-        $base64UrlSignature = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($signature));
-
-        // Return JWT
-        return $base64UrlHeader.'.'.$base64UrlPayload.'.'.$base64UrlSignature;
-    }
-
-    /*
- * Create a JWT token from Component settings
- *
- * @param array $component The code of the component
- * @param array The JWT token
- */
-    public function createJwtToken(?array $component)
-    {
-
-        if(!isset($component['id']) || !isset($component['secret'])) {
-            throw new HttpException('500', 'Dependency not valid for method: JWT');
-        }
-
-        $now = new \DateTime('now');
-        $jwsBuilder = new \Jose\Component\Signature\JWSBuilder(new AlgorithmManager([new HS256()]));
-
-        $jwk = new JWK([
-            'kty' => 'oct',
-            'k'   => base64_encode(addslashes($component['secret'])),
-        ]);
-
-        $payload = json_encode([
-            'iss'                    => $component['id'],
-            'iat'                    => $now->getTimestamp(),
-            'client_id'              => $component['id'],
-            'user_id'                => $this->params->get('app_name'),
-            'user_respresentation'   => $this->params->get('app_name'),
-        ]);
-
-        $jws = $jwsBuilder
-            ->create()
-            ->withPayload($payload)
-            ->addSignature($jwk, ['alg' => 'HS256'])
-            ->build();
-
-        $serializer = new CompactSerializer();
-
-        return $serializer->serialize($jws, 0);
     }
 
     /*
