@@ -3,6 +3,11 @@
 
 namespace Conduction\CommonGroundBundle\Service;
 
+use Jose\Component\Core\AlgorithmManager;
+use Jose\Component\Core\JWK;
+use Jose\Component\Signature\Algorithm\HS256;
+use Jose\Component\Signature\Algorithm\RS512;
+use Jose\Component\Signature\Serializer\CompactSerializer;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 class AuthenticationService
