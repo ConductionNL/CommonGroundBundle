@@ -7,6 +7,7 @@ use DateTime;
 use Jose\Component\Core\AlgorithmManager;
 use Jose\Component\Core\JWK;
 use Jose\Component\Signature\Algorithm\HS256;
+use Jose\Component\Signature\JWSBuilder;
 use Jose\Component\Signature\Algorithm\RS512;
 use Jose\Component\Signature\Serializer\CompactSerializer;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
@@ -68,7 +69,7 @@ class AuthenticationService
         return $this->parameterBag->get('jwt.id');
     }
 
-    public function getJwtPayload(array $component): array
+    public function getJwtPayload(array $component): string
     {
         $now = new DateTime('now');
         $clientId = $this->getApplicationId($component);
@@ -76,8 +77,8 @@ class AuthenticationService
             'iss'                => $clientId,
             'iat'                => $now->getTimestamp(),
             'client_id'          => $clientId,
-            'user_id'            => $this->params->get('app_name'),
-            'user_representation'=> $this->params->get('app_name'),
+            'user_id'            => $this->parameterBag->get('app_name'),
+            'user_representation'=> $this->parameterBag->get('app_name'),
         ]);
     }
 
@@ -114,7 +115,7 @@ class AuthenticationService
                 case 'jwt-HS256':
                 case 'jwt-RS512':
                 case 'jwt':
-                    $requestOptions['headers']['Authorization'] = 'Bearer '.$this->getJwtToken($component['code']);
+                    $requestOptions['headers']['Authorization'] = 'Bearer '.$this->getJwtToken($component);
                     break;
                 case 'username-password':
                     $requestOptions['auth'] = [$component['username'], $component['password']];
