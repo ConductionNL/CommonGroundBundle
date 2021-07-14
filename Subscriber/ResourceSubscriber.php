@@ -37,9 +37,9 @@ class ResourceSubscriber implements EventSubscriberInterface
         ];
     }
 
-    public function getNotificationComponent (array $components): ?string
+    public function getNotificationComponent(array $components): ?string
     {
-        if(key_exists('notificatiecomponent', $components)){
+        if (key_exists('notificatiecomponent', $components)) {
             return 'notificatiecomponent';
         } elseif (key_exists('notification-component', $components)) {
             return 'notification-component';
@@ -66,6 +66,7 @@ class ResourceSubscriber implements EventSubscriberInterface
             $results['type'] = $properties[0];
             $results['id'] = $properties[1];
         }
+
         return $results;
     }
 
@@ -78,8 +79,9 @@ class ResourceSubscriber implements EventSubscriberInterface
         $properties = $this->getType($event, $result);
 
         $notificationComponent = $this->getNotificationComponent($components);
-        if(!$notificationComponent)
+        if (!$notificationComponent) {
             return;
+        }
         // Only do somthing if we are on te log route and the entity is logable
         $notification = [];
         $notification['topic'] = "{$this->parameterBag->get('app_name')}/{$properties['type']}";
@@ -98,6 +100,5 @@ class ResourceSubscriber implements EventSubscriberInterface
         }
         $notification['resource'] = "{$this->parameterBag->get('app_url')}/{$properties['type']}/{$properties['id']}";
         $this->commonGroundService->createResource($notification, ['component' => $notificationComponent, 'type' => 'notifications'], false, true, false);
-
     }
 }
