@@ -8,10 +8,6 @@ use Conduction\CommonGroundBundle\Event\CommonGroundEvents;
 use Conduction\CommonGroundBundle\Event\CommongroundUpdateEvent;
 use DateInterval;
 use GuzzleHttp\Client;
-use Jose\Component\Core\AlgorithmManager;
-use Jose\Component\Core\JWK;
-use Jose\Component\Signature\Algorithm\HS256;
-use Jose\Component\Signature\Serializer\CompactSerializer;
 use Ramsey\Uuid\Uuid;
 use Symfony\Component\Cache\Adapter\AdapterInterface as CacheInterface;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
@@ -252,7 +248,6 @@ class CommonGroundService
         if ($component && array_key_exists('accept', $component)) {
             $headers['Accept'] = $component['accept'];
         }
-
 
         if (defined($this->request) && $this->request) {
             if ($start = $this->request->query->get('start')) {
@@ -1244,7 +1239,6 @@ class CommonGroundService
         return $host;
     }
 
-
     public function getUrlFromEndpoint($endpoint, $autowire)
     {
         if (is_array($endpoint) && array_key_exists('component', $endpoint)) {
@@ -1267,7 +1261,6 @@ class CommonGroundService
         return $this->cleanUrl($endpoint, false, $autowire);
     }
 
-
     /*
      * Calls a pre-configures commonground service
      *
@@ -1282,14 +1275,12 @@ class CommonGroundService
     public function callService(
         array $component,
         string $url,
-        string $content ,
+        string $content,
         $query = [],
         $headers = [],
         $async = false,
         string $type = 'GET'
-    )
-    {
-
+    ) {
         $auth = false;
         // Merge header overwrites into the default headers
         $headers = array_merge($this->headers, $headers);

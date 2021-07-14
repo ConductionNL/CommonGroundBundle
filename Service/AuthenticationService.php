@@ -1,14 +1,13 @@
 <?php
 
-
 namespace Conduction\CommonGroundBundle\Service;
 
 use DateTime;
 use Jose\Component\Core\AlgorithmManager;
 use Jose\Component\Core\JWK;
 use Jose\Component\Signature\Algorithm\HS256;
-use Jose\Component\Signature\JWSBuilder;
 use Jose\Component\Signature\Algorithm\RS512;
+use Jose\Component\Signature\JWSBuilder;
 use Jose\Component\Signature\Serializer\CompactSerializer;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
@@ -17,14 +16,15 @@ class AuthenticationService
     private ParameterBagInterface $parameterBag;
     private FileService $fileService;
 
-    public function __construct(ParameterBagInterface $parameterBag){
+    public function __construct(ParameterBagInterface $parameterBag)
+    {
         $this->parameterBag = $parameterBag;
         $this->fileService = new FileService();
     }
 
     public function convertRSAtoJWK(array $component): JWK
     {
-        if(key_exists('privateKey', $component)){
+        if (key_exists('privateKey', $component)) {
             $rsa = base64_decode($component['privateKey']);
         } else {
             $rsa = base64_decode($this->parameterBag->get('jwt.privateKey'));
@@ -42,7 +42,7 @@ class AuthenticationService
 
     public function getAlgorithm(array $component): string
     {
-        if($component['auth'] == 'jwt-HS256' || $component['auth'] == 'jwt'){
+        if ($component['auth'] == 'jwt-HS256' || $component['auth'] == 'jwt') {
             return 'HS256';
         } else {
             return 'RS512';
@@ -51,10 +51,10 @@ class AuthenticationService
 
     public function getJWK(string $algorithm, $component): JWK
     {
-        if($algorithm == 'HS256'){
+        if ($algorithm == 'HS256') {
             return new JWK([
                 'kty' => 'oct',
-                'k' => base64_encode(addslashes($component['secret'])),
+                'k'   => base64_encode(addslashes($component['secret'])),
             ]);
         } else {
             return $this->convertRSAtoJWK($component);
@@ -63,9 +63,10 @@ class AuthenticationService
 
     public function getApplicationId(array $component): string
     {
-        if(key_exists('id', $component)){
+        if (key_exists('id', $component)) {
             return $component['id'];
         }
+
         return $this->parameterBag->get('jwt.id');
     }
 
@@ -73,6 +74,7 @@ class AuthenticationService
     {
         $now = new DateTime('now');
         $clientId = $this->getApplicationId($component);
+
         return json_encode([
             'iss'                => $clientId,
             'iat'                => $now->getTimestamp(),
@@ -83,11 +85,11 @@ class AuthenticationService
     }
 
     /**
-    * Create a JWT token from Component settings
-    *
-    * @param array $component The code of the component
-    * @param string The JWT token
-    */
+     * Create a JWT token from Component settings.
+     *
+     * @param array $component The code of the component
+     * @param string The JWT token
+     */
     public function getJwtToken(array $component): string
     {
         $algorithmManager = new AlgorithmManager([new HS256(), new RS512()]);
@@ -105,6 +107,7 @@ class AuthenticationService
             ->build();
 
         $jwsSerializer = new CompactSerializer();
+
         return $jwsSerializer->serialize($jws, 0);
     }
 
@@ -128,6 +131,7 @@ class AuthenticationService
         } else {
             $requestOptions['headers']['Authorization'] = $component['apikey'];
         }
+
         return $requestOptions;
     }
 }

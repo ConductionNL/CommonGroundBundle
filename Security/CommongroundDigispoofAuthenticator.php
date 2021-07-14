@@ -80,7 +80,6 @@ class CommongroundDigispoofAuthenticator extends AbstractGuardAuthenticator
             return;
         }
 
-
         if (!isset($user['roles'])) {
             $user['roles'] = [];
         }

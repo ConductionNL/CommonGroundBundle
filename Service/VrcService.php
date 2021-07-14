@@ -288,7 +288,7 @@ class VrcService
                 $event['description'] = $requestType['name'];
                 $event['organization'] = $request['organization'];
                 $event['resource'] = $request['@id'];
-                $event['calendar'] = '/calendars/' . $this->commonGroundService->getUuidFromUrl($calendar);
+                $event['calendar'] = '/calendars/'.$this->commonGroundService->getUuidFromUrl($calendar);
                 $event['startDate'] = $startDate->format('Y-m-d H:i:s');
                 $event['endDate'] = $endDate->format('Y-m-d H:i:s');
                 $event['priority'] = 1;
