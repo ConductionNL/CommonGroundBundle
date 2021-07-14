@@ -76,7 +76,6 @@ class ResourceSubscriber implements EventSubscriberInterface
         $result = $event->getControllerResult();
         $route = $event->getRequest()->attributes->get('_route');
         $components = $this->parameterBag->get('components');
-        $properties = $this->getType($event, $result);
 
         $notificationComponent = $this->getNotificationComponent($components);
         if (!$notificationComponent) {
@@ -84,7 +83,6 @@ class ResourceSubscriber implements EventSubscriberInterface
         }
         // Only do somthing if we are on te log route and the entity is logable
         $notification = [];
-        $notification['topic'] = "{$this->parameterBag->get('app_name')}/{$properties['type']}";
         switch ($method) {
             case 'POST':
                 $notification['action'] = 'Create';
@@ -98,6 +96,8 @@ class ResourceSubscriber implements EventSubscriberInterface
             default:
                 return;
         }
+        $properties = $this->getType($event, $result);
+        $notification['topic'] = "{$this->parameterBag->get('app_name')}/{$properties['type']}";
         $notification['resource'] = "{$this->parameterBag->get('app_url')}/{$properties['type']}/{$properties['id']}";
         $this->commonGroundService->createResource($notification, ['component' => $notificationComponent, 'type' => 'notifications'], false, true, false);
     }
