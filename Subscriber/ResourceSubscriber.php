@@ -37,35 +37,52 @@ class ResourceSubscriber implements EventSubscriberInterface
         ];
     }
 
+    public function getNotificationComponent (array $components): ?string
+    {
+        if(key_exists('notificatiecomponent', $components)){
+            return 'notificatiecomponent';
+        } elseif (key_exists('notification-component', $components)) {
+            return 'notification-component';
+        } elseif (key_exists('notificationcomponent', $components)) {
+            return 'notificationcomponent';
+        } elseif (key_exists('notification-regitration-component', $components)) {
+            return 'notification-registration-component';
+        } elseif (key_exists('nrc', $components)) {
+            return 'nrc';
+        } else {
+            return null;
+        }
+    }
+
+    public function getType(ViewEvent $event, $result): array
+    {
+        $results = [];
+        if ($result && is_object($result)) {
+            $type = explode('\\', get_class($result));
+            $results['type'] = $this->inflector->pluralize($this->inflector->tableize(end($type)));
+            $results['id'] = $result->getId();
+        } else {
+            $properties = array_slice(explode('/', $event->getRequest()->getPathInfo()), 1);
+            $results['type'] = $properties[0];
+            $results['id'] = $properties[1];
+        }
+        return $results;
+    }
+
     public function notify(ViewEvent $event)
     {
         $method = $event->getRequest()->getMethod();
         $result = $event->getControllerResult();
         $route = $event->getRequest()->attributes->get('_route');
         $components = $this->parameterBag->get('components');
+        $properties = $this->getType($event, $result);
 
-        if ($result && is_object($result)) {
-            $type = explode('\\', get_class($result));
-            $type = $this->inflector->pluralize($this->inflector->tableize(end($type)));
-        } else {
-            $properties = array_slice(explode('/', $event->getRequest()->getPathInfo()), -2);
-            //@TODO: make dynamic for BRP etc.
-            $type = $properties[0];
-            $id = $properties[1];
-        }
-        if(key_exists('notificatiecomponent', $components)){
-            $notificationComponent = 'notificatiecomponent';
-        } elseif(key_exists('notification-component', $components)){
-            $notificationComponent = 'notification-component';
-        }elseif(key_exists('notification-regitration-component', $components)){
-            $notificationComponent = 'notification-registration-component';
-        }elseif(key_exists('nrc', $components)){
-            $notificationComponent = 'nrc';
-        }
-
+        $notificationComponent = $this->getNotificationComponent($components);
+        if(!$notificationComponent)
+            return;
         // Only do somthing if we are on te log route and the entity is logable
         $notification = [];
-        $notification['topic'] = "{$this->parameterBag->get('app_name')}/$type";
+        $notification['topic'] = "{$this->parameterBag->get('app_name')}/{$properties['type']}";
         switch ($method) {
             case 'POST':
                 $notification['action'] = 'Create';
@@ -79,13 +96,7 @@ class ResourceSubscriber implements EventSubscriberInterface
             default:
                 return;
         }
-
-        if ($result) {
-            $notification['resource'] = "{$this->parameterBag->get('app_url')}/$type/{$result->getId()}";
-        } else {
-            $notification['resource'] = "{$this->parameterBag->get('app_url')}/$type/$id";
-        }
-
+        $notification['resource'] = "{$this->parameterBag->get('app_url')}/{$properties['type']}/{$properties['id']}";
         $this->commonGroundService->createResource($notification, ['component' => $notificationComponent, 'type' => 'notifications'], false, true, false);
 
     }
