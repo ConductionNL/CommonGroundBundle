@@ -242,8 +242,6 @@ class CommonGroundService
             }
         }
 
-        $query = $this->convertQuery($query);
-
         // Component specific congiguration
         if ($component && array_key_exists('accept', $component)) {
             $headers['Accept'] = $component['accept'];
@@ -251,6 +249,8 @@ class CommonGroundService
         if ($component && array_key_exists('locale', $component)) {
             $this->setLocal($component['locale']);
         }
+
+        $query = $this->convertQuery($query);
 
         if (defined($this->request) && $this->request) {
             if ($start = $this->request->query->get('start')) {
@@ -377,8 +377,6 @@ class CommonGroundService
         $headers = $this->headers;
         $headers['X-NLX-Request-Subject-Identifier'] = $url;
 
-        $query = $this->convertQuery($query);
-
         // Component specific congiguration
         if ($component && array_key_exists('accept', $component)) {
             $headers['Accept'] = $component['accept'];
@@ -386,6 +384,9 @@ class CommonGroundService
         if ($component && array_key_exists('locale', $component)) {
             $this->setLocal($component['locale']);
         }
+
+        $query = $this->convertQuery($query);
+        
         $requestOptions = $this->authenticationService->setAuthorization([
             'query'       => $query,
             'headers'     => $headers,
@@ -1300,9 +1301,6 @@ class CommonGroundService
         // Component specific congiguration
         if ($component && array_key_exists('accept', $component)) {
             $headers['Accept'] = $component['accept'];
-        }
-        if ($component && array_key_exists('locale', $component)) {
-            $this->setLocal($component['locale']);
         }
         // Lets make sure the start and limit are always integer
         if (defined($this->request) && $this->request) {
