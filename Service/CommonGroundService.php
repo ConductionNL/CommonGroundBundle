@@ -502,6 +502,7 @@ class CommonGroundService
             $headers['Accept'] = $component['accept'];
         }
         $resource = $this->cleanResource($resource);
+
         $requestOptions = $this->authenticationService->setAuthorization([
             'body'        => json_encode($resource),
             'headers'     => $headers,
@@ -509,12 +510,7 @@ class CommonGroundService
             'http_errors' => $error,
         ], $component);
 
-        //Unset properties without values. To force empty, set an empty array ([])
-        foreach ($resource as $key => $value) {
-            if ($value === null) {
-                unset($resource[$key]);
-            }
-        }
+
 
         if (!$async) {
             try {
@@ -915,6 +911,13 @@ class CommonGroundService
         unset($resource['id']);
         unset($resource['_links']);
         unset($resource['_embedded']);
+
+        //Unset properties without values. To force empty, set an empty array ([])
+        foreach ($resource as $key => $value) {
+            if ($value === null) {
+                unset($resource[$key]);
+            }
+        }
 
         return $resource;
     }
