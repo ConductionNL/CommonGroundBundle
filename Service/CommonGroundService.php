@@ -386,7 +386,7 @@ class CommonGroundService
         }
 
         $query = $this->convertQuery($query);
-        
+
         $requestOptions = $this->authenticationService->setAuthorization([
             'query'       => $query,
             'headers'     => $headers,
@@ -501,9 +501,6 @@ class CommonGroundService
         if ($component && array_key_exists('accept', $component)) {
             $headers['Accept'] = $component['accept'];
         }
-        if ($component && array_key_exists('locale', $component)) {
-            $this->setLocal($component['locale']);
-        }
         $resource = $this->cleanResource($resource);
         $requestOptions = $this->authenticationService->setAuthorization([
             'body'        => json_encode($resource),
@@ -616,9 +613,6 @@ class CommonGroundService
         if ($component && array_key_exists('accept', $component)) {
             $headers['Accept'] = $component['accept'];
         }
-        if ($component && array_key_exists('locale', $component)) {
-            $this->setLocal($component['locale']);
-        }
         $resource = $this->cleanResource($resource);
         $requestOptions = $this->authenticationService->setAuthorization([
             'body'        => json_encode($resource),
@@ -722,9 +716,6 @@ class CommonGroundService
         // Component specific congiguration
         if ($component && array_key_exists('accept', $component)) {
             $headers['Accept'] = $component['accept'];
-        }
-        if ($component && array_key_exists('locale', $component)) {
-            $this->setLocal($component['locale']);
         }
         $requestOptions = $this->authenticationService->setAuthorization([
             'headers'     => $headers,
