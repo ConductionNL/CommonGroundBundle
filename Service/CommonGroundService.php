@@ -510,8 +510,6 @@ class CommonGroundService
             'http_errors' => $error,
         ], $component);
 
-
-
         if (!$async) {
             try {
                 $response = $this->client->request('PUT', $url, $requestOptions);
