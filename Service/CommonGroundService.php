@@ -242,12 +242,15 @@ class CommonGroundService
             }
         }
 
-        $query = $this->convertQuery($query);
-
         // Component specific congiguration
         if ($component && array_key_exists('accept', $component)) {
             $headers['Accept'] = $component['accept'];
         }
+        if ($component && array_key_exists('locale', $component)) {
+            $this->setLocal($component['locale']);
+        }
+
+        $query = $this->convertQuery($query);
 
         if (defined($this->request) && $this->request) {
             if ($start = $this->request->query->get('start')) {
@@ -374,12 +377,16 @@ class CommonGroundService
         $headers = $this->headers;
         $headers['X-NLX-Request-Subject-Identifier'] = $url;
 
-        $query = $this->convertQuery($query);
-
         // Component specific congiguration
         if ($component && array_key_exists('accept', $component)) {
             $headers['Accept'] = $component['accept'];
         }
+        if ($component && array_key_exists('locale', $component)) {
+            $this->setLocal($component['locale']);
+        }
+
+        $query = $this->convertQuery($query);
+
         $requestOptions = $this->authenticationService->setAuthorization([
             'query'       => $query,
             'headers'     => $headers,
@@ -494,21 +501,14 @@ class CommonGroundService
         if ($component && array_key_exists('accept', $component)) {
             $headers['Accept'] = $component['accept'];
         }
-
         $resource = $this->cleanResource($resource);
+
         $requestOptions = $this->authenticationService->setAuthorization([
             'body'        => json_encode($resource),
             'headers'     => $headers,
             'auth'        => $auth,
             'http_errors' => $error,
         ], $component);
-
-        //Unset properties without values. To force empty, set an empty array ([])
-        foreach ($resource as $key => $value) {
-            if ($value === null) {
-                unset($resource[$key]);
-            }
-        }
 
         if (!$async) {
             try {
@@ -607,7 +607,6 @@ class CommonGroundService
         if ($component && array_key_exists('accept', $component)) {
             $headers['Accept'] = $component['accept'];
         }
-
         $resource = $this->cleanResource($resource);
         $requestOptions = $this->authenticationService->setAuthorization([
             'body'        => json_encode($resource),
@@ -910,6 +909,13 @@ class CommonGroundService
         unset($resource['id']);
         unset($resource['_links']);
         unset($resource['_embedded']);
+
+        //Unset properties without values. To force empty, set an empty array ([])
+        foreach ($resource as $key => $value) {
+            if ($value === null) {
+                unset($resource[$key]);
+            }
+        }
 
         return $resource;
     }
@@ -1218,7 +1224,7 @@ class CommonGroundService
      */
     public function setLocal($input)
     {
-        $this->local = $input;
+        $input == 'null' ? $this->local = null : $this->local = $input;
     }
 
     /*
