@@ -5,6 +5,7 @@ namespace Conduction\CommonGroundBundle\Service;
 use DateTime;
 use Jose\Component\Core\AlgorithmManager;
 use Jose\Component\Core\JWK;
+use Jose\Component\KeyManagement\JWKFactory;
 use Jose\Component\Signature\Algorithm\HS256;
 use Jose\Component\Signature\Algorithm\RS512;
 use Jose\Component\Signature\JWSBuilder;
@@ -148,7 +149,7 @@ class AuthenticationService
     {
         $algorithmManager = new AlgorithmManager([new HS256(), new RS512()]);
         $jwsVerifier = new JWSVerifier($algorithmManager);
-        $publicKeyFile = $this->fileService->writeFile('publickey', $publicKey);
+        $publicKeyFile = $this->fileService->writeFile('publickey', base64_decode($publicKey));
         $jwk = JWKFactory::createFromKeyFile($publicKeyFile, null, []);
 
         $serializerManager = new JWSSerializerManager([new CompactSerializer()]);
@@ -156,7 +157,7 @@ class AuthenticationService
         $jws = $serializerManager->unserialize($token);
         if($jwsVerifier->verifyWithKey($jws, $jwk, 0)){
             $this->fileService->removeFile($publicKeyFile);
-            return $jws->getPayload();
+            return json_decode($jws->getPayload(), true);
         } else {
             throw new AuthenticationException("Unauthorized: The provided Authorization header is invalid", 401);
         }

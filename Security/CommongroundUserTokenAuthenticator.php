@@ -36,26 +36,14 @@ class CommongroundUserTokenAuthenticator extends AbstractGuardAuthenticator
     /**
      * @var FlashBagInterface
      */
-    private $flash;
-    private $entityManager;
-    private $parameterBag;
-    private $commonGroundService;
-    private $csrfTokenManager;
-    private $router;
-    private $urlGenerator;
-    private $session;
+    private ParameterBagInterface $parameterBag;
+    private CommonGroundService $commonGroundService;
     private AuthenticationService $authenticationService;
 
-    public function __construct(EntityManagerInterface $entityManager, ParameterBagInterface $parameterBag, CommonGroundService $commonGroundService, CsrfTokenManagerInterface $csrfTokenManager, RouterInterface $router, UrlGeneratorInterface $urlGenerator, FlashBagInterface $flash, SessionInterface $session)
+    public function __construct(ParameterBagInterface $parameterBag, CommonGroundService $commonGroundService)
     {
-        $this->entityManager = $entityManager;
         $this->parameterBag = $parameterBag;
         $this->commonGroundService = $commonGroundService;
-        $this->csrfTokenManager = $csrfTokenManager;
-        $this->router = $router;
-        $this->urlGenerator = $urlGenerator;
-        $this->flash = $flash;
-        $this->session = $session;
         $this->authenticationService = new AuthenticationService($parameterBag);
     }
 
