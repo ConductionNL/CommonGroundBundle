@@ -1,8 +1,6 @@
 <?php
 
-
 namespace Conduction\CommonGroundBundle\Service;
-
 
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\ViewEvent;
@@ -18,8 +16,10 @@ class SerializerService
     }
 
     /**
-     * Gets content type from an event, and sets a default when the content type is not supported
+     * Gets content type from an event, and sets a default when the content type is not supported.
+     *
      * @param ViewEvent $event The event triggered by the request
+     *
      * @return string The content type from the request, defaulted to application/json when not supported
      */
     public function getContentType(ViewEvent $event): string
@@ -28,19 +28,22 @@ class SerializerService
         if (!$contentType) {
             $contentType = $event->getRequest()->headers->get('Accept');
         }
-        if(
+        if (
             $contentType != 'application/json' &&
             $contentType != 'application/ld+json' &&
             $contentType != 'application/hal+json'
-        ){
+        ) {
             $contentType = 'application/json';
         }
+
         return $contentType;
     }
 
     /**
-     * Returns the render type for the content type provided
+     * Returns the render type for the content type provided.
+     *
      * @param string $contentType The content type to find the proper render type for
+     *
      * @return string The render type belonging to the content type specified
      */
     public function getRenderType(string $contentType): string
@@ -61,12 +64,14 @@ class SerializerService
     }
 
     /**
-     * Serialises an object into the requested render type
-     * @param Object $result The object to be serialised
+     * Serialises an object into the requested render type.
+     *
+     * @param object $result     The object to be serialised
      * @param string $renderType The render type to render in
+     *
      * @return string The resulting response string
      */
-    public function serialize(Object $result, string $renderType): string
+    public function serialize(object $result, string $renderType): string
     {
         return $this->serializer->serialize(
             $result,
@@ -76,9 +81,11 @@ class SerializerService
     }
 
     /**
-     * Creates the response for the response string
-     * @param string $response The response string to include
+     * Creates the response for the response string.
+     *
+     * @param string $response    The response string to include
      * @param string $contentType The content type of the response string
+     *
      * @return Response The HTTP response created
      */
     public function createResponse(string $response, string $contentType): Response
@@ -94,11 +101,12 @@ class SerializerService
     }
 
     /**
-     * Sets a HTTP response for an object to serialize
-     * @param Object $result The object to serialize
-     * @param ViewEvent $event The request event
+     * Sets a HTTP response for an object to serialize.
+     *
+     * @param object    $result The object to serialize
+     * @param ViewEvent $event  The request event
      */
-    public function setResponse(Object $result, ViewEvent $event): void
+    public function setResponse(object $result, ViewEvent $event): void
     {
         $contentType = $this->getContentType($event);
         $renderType = $this->getRenderType($contentType);

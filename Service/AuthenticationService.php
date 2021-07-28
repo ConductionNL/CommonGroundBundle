@@ -140,10 +140,12 @@ class AuthenticationService
     }
 
     /**
-     * @param string $token The token to verify
+     * @param string $token     The token to verify
      * @param string $publicKey The public key to verify the token to
-     * @return array The payload of the token
+     *
      * @throws HttpException Thrown when the token cannot be verified
+     *
+     * @return array The payload of the token
      */
     public function verifyJWTToken(string $token, string $publicKey): array
     {
@@ -155,11 +157,12 @@ class AuthenticationService
         $serializerManager = new JWSSerializerManager([new CompactSerializer()]);
 
         $jws = $serializerManager->unserialize($token);
-        if($jwsVerifier->verifyWithKey($jws, $jwk, 0)){
+        if ($jwsVerifier->verifyWithKey($jws, $jwk, 0)) {
             $this->fileService->removeFile($publicKeyFile);
+
             return json_decode($jws->getPayload(), true);
         } else {
-            throw new AuthenticationException("Unauthorized: The provided Authorization header is invalid", 401);
+            throw new AuthenticationException('Unauthorized: The provided Authorization header is invalid', 401);
         }
     }
 }
