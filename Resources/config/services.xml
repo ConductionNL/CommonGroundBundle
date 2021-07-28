@@ -34,6 +34,7 @@
         <!--CommonGround Security: Authenticators-->
         <service id="Conduction\CommonGroundBundle\Security\CommongroundApplicationAuthenticator" />
         <service id="Conduction\CommonGroundBundle\Security\CommongroundUserAuthenticator" />
+        <service id="Conduction\CommonGroundBundle\Security\CommongroundUserTokenAuthenticator" />
         <service id="Conduction\CommonGroundBundle\Security\CommongroundDigispoofAuthenticator" />
         <service id="Conduction\CommonGroundBundle\Security\CommongroundEherkenningAuthenticator" />
         <service id="Conduction\CommonGroundBundle\Security\CommongroundIdinAuthenticator" />
