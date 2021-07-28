@@ -5,11 +5,15 @@ namespace Conduction\CommonGroundBundle\Service;
 use DateTime;
 use Jose\Component\Core\AlgorithmManager;
 use Jose\Component\Core\JWK;
+use Jose\Component\KeyManagement\JWKFactory;
 use Jose\Component\Signature\Algorithm\HS256;
 use Jose\Component\Signature\Algorithm\RS512;
 use Jose\Component\Signature\JWSBuilder;
+use Jose\Component\Signature\JWSVerifier;
 use Jose\Component\Signature\Serializer\CompactSerializer;
+use Jose\Component\Signature\Serializer\JWSSerializerManager;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
+use Symfony\Component\Security\Core\Exception\AuthenticationException;
 
 class AuthenticationService
 {
@@ -133,5 +137,32 @@ class AuthenticationService
         }
 
         return $requestOptions;
+    }
+
+    /**
+     * @param string $token     The token to verify
+     * @param string $publicKey The public key to verify the token to
+     *
+     * @throws HttpException Thrown when the token cannot be verified
+     *
+     * @return array The payload of the token
+     */
+    public function verifyJWTToken(string $token, string $publicKey): array
+    {
+        $algorithmManager = new AlgorithmManager([new HS256(), new RS512()]);
+        $jwsVerifier = new JWSVerifier($algorithmManager);
+        $publicKeyFile = $this->fileService->writeFile('publickey', base64_decode($publicKey));
+        $jwk = JWKFactory::createFromKeyFile($publicKeyFile, null, []);
+
+        $serializerManager = new JWSSerializerManager([new CompactSerializer()]);
+
+        $jws = $serializerManager->unserialize($token);
+        if ($jwsVerifier->verifyWithKey($jws, $jwk, 0)) {
+            $this->fileService->removeFile($publicKeyFile);
+
+            return json_decode($jws->getPayload(), true);
+        } else {
+            throw new AuthenticationException('Unauthorized: The provided Authorization header is invalid', 401);
+        }
     }
 }
