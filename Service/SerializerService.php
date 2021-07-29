@@ -85,16 +85,19 @@ class SerializerService
      *
      * @param string $response    The response string to include
      * @param string $contentType The content type of the response string
-     *
+     * @param array|null $attributes The attributes to serialize
      * @return Response The HTTP response created
      */
-    public function createResponse(string $response, string $contentType): Response
+    public function createResponse(string $response, string $contentType, ?array $attributes = null): Response
     {
+        $options = ['content-type' => $contentType];
+        $attributes ? $options['attributes'] = $attributes : null;
+
         // Creating a response
         $response = new Response(
             $response,
             Response::HTTP_OK,
-            ['content-type' => $contentType]
+            $options
         );
 
         return $response;
