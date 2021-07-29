@@ -88,7 +88,7 @@ class SerializerService
      * @param array|null $attributes The attributes to serialize
      * @return Response The HTTP response created
      */
-    public function createResponse(string $response, string $contentType, ?array $attributes = null): Response
+    public function createResponse(string $response, string $contentType, ?array $attributes): Response
     {
         $options = ['content-type' => $contentType];
         $attributes ? $options['attributes'] = $attributes : null;
@@ -106,14 +106,15 @@ class SerializerService
     /**
      * Sets a HTTP response for an object to serialize.
      *
-     * @param object    $result The object to serialize
-     * @param ViewEvent $event  The request event
+     * @param object $result The object to serialize
+     * @param ViewEvent $event The request event
+     * @param array|null $attributes Attributes to serialize
      */
-    public function setResponse(object $result, ViewEvent $event): void
+    public function setResponse(object $result, ViewEvent $event, ?array $attributes = null): void
     {
         $contentType = $this->getContentType($event);
         $renderType = $this->getRenderType($contentType);
         $response = $this->serialize($result, $renderType);
-        $event->setResponse($this->createResponse($response, $contentType));
+        $event->setResponse($this->createResponse($response, $contentType, $attributes));
     }
 }
