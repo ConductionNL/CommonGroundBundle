@@ -66,17 +66,20 @@ class SerializerService
     /**
      * Serialises an object into the requested render type.
      *
-     * @param object $result     The object to be serialised
+     * @param object $result The object to be serialised
      * @param string $renderType The render type to render in
+     * @param array|null $attributes Attributes to serialize
      *
      * @return string The resulting response string
      */
-    public function serialize(object $result, string $renderType): string
+    public function serialize(object $result, string $renderType, ?array $attributes): string
     {
+        $options = ['enable_max_depth'=> true];
+        $attributes ? $options['attributes'] = $attributes : null;
         return $this->serializer->serialize(
             $result,
             $renderType,
-            ['enable_max_depth'=> true]
+            $options,
         );
     }
 
@@ -85,19 +88,15 @@ class SerializerService
      *
      * @param string $response    The response string to include
      * @param string $contentType The content type of the response string
-     * @param array|null $attributes The attributes to serialize
      * @return Response The HTTP response created
      */
-    public function createResponse(string $response, string $contentType, ?array $attributes): Response
+    public function createResponse(string $response, string $contentType): Response
     {
-        $options = ['content-type' => $contentType];
-        $attributes ? $options['attributes'] = $attributes : null;
-
         // Creating a response
         $response = new Response(
             $response,
             Response::HTTP_OK,
-            $options
+            ['content-type' => $contentType],
         );
 
         return $response;
@@ -114,7 +113,7 @@ class SerializerService
     {
         $contentType = $this->getContentType($event);
         $renderType = $this->getRenderType($contentType);
-        $response = $this->serialize($result, $renderType);
-        $event->setResponse($this->createResponse($response, $contentType, $attributes));
+        $response = $this->serialize($result, $renderType, $attributes);
+        $event->setResponse($this->createResponse($response, $contentType));
     }
 }
