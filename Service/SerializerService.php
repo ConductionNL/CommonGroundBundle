@@ -3,7 +3,7 @@
 namespace Conduction\CommonGroundBundle\Service;
 
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Event\ViewEvent;
+use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\Serializer\SerializerInterface;
 
 class SerializerService
@@ -18,11 +18,11 @@ class SerializerService
     /**
      * Gets content type from an event, and sets a default when the content type is not supported.
      *
-     * @param ViewEvent $event The event triggered by the request
+     * @param RequestEvent $event The event triggered by the request
      *
      * @return string The content type from the request, defaulted to application/json when not supported
      */
-    public function getContentType(ViewEvent $event): string
+    public function getContentType(RequestEvent $event): string
     {
         $contentType = $event->getRequest()->headers->get('accept');
         if (!$contentType) {
@@ -108,10 +108,10 @@ class SerializerService
      * Sets a HTTP response for an object to serialize.
      *
      * @param object     $result     The object to serialize
-     * @param ViewEvent  $event      The request event
+     * @param RequestEvent  $event      The request event
      * @param array|null $attributes Attributes to serialize
      */
-    public function setResponse(object $result, ViewEvent $event, ?array $attributes = null): void
+    public function setResponse(object $result, RequestEvent $event, ?array $attributes = null): void
     {
         $contentType = $this->getContentType($event);
         $renderType = $this->getRenderType($contentType);
