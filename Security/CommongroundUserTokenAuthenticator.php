@@ -66,7 +66,7 @@ class CommongroundUserTokenAuthenticator extends AbstractGuardAuthenticator
 
         $user = $this->commonGroundService->getResource(['component'=>'uc', 'type'=>'users', 'id' => $payload['userId']], [], true, false, true, false, false);
 
-        if ($user['username'] != $payload['username']) {
+        if (!$user || $user['username'] != $payload['username']) {
             throw new AuthenticationException('The provided token does not match the user it refers to');
         }
 
