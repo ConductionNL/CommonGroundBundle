@@ -106,9 +106,9 @@ class SerializerService
     /**
      * Sets a HTTP response for an object to serialize.
      *
-     * @param object     $result     The object to serialize
-     * @param RequestEvent  $event      The request event
-     * @param array|null $attributes Attributes to serialize
+     * @param object       $result     The object to serialize
+     * @param RequestEvent $event      The request event
+     * @param array|null   $attributes Attributes to serialize
      */
     public function setResponse(object $result, RequestEvent $event, ?array $attributes = null): void
     {
