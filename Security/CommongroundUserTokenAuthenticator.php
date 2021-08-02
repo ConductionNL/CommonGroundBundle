@@ -65,9 +65,13 @@ class CommongroundUserTokenAuthenticator extends AbstractGuardAuthenticator
         $payload = $this->authenticationService->verifyJWTToken($credentials['token'], $this->parameterBag->get('public_key'));
 
         $user = $this->commonGroundService->getResource(['component'=>'uc', 'type'=>'users', 'id' => $payload['userId']], [], true, false, true, false, false);
+        $session = $this->commonGroundService->getResource(['component'=>'uc', 'type'=>'sessions', 'id' => $payload['session']], [], true, false, true, false, false);
 
         if (!$user || $user['username'] != $payload['username']) {
             throw new AuthenticationException('The provided token does not match the user it refers to');
+        }
+        if (!$session || $session['expiry'] < new \DateTime('now') || !$session['valid']) {
+            throw new AuthenticationException('The provided token refers to an invalid session');
         }
 
         if (!in_array('ROLE_USER', $user['roles'])) {
