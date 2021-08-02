@@ -72,10 +72,9 @@ class SerializerService
      *
      * @return string The resulting response string
      */
-    public function serialize(object $result, string $renderType, ?array $attributes): string
+    public function serialize(object $result, string $renderType, ?array $options): string
     {
-        $options = ['enable_max_depth'=> true];
-        $attributes ? $options['attributes'] = $attributes : null;
+        $options['enable_max_depth'] = true;
 
         return $this->serializer->serialize(
             $result,
