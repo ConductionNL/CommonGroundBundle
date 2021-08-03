@@ -22,6 +22,7 @@ use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
 use Symfony\Component\Security\Guard\AbstractGuardAuthenticator;
+use DateTime;
 
 class CommongroundUserTokenAuthenticator extends AbstractGuardAuthenticator
 {
@@ -62,7 +63,8 @@ class CommongroundUserTokenAuthenticator extends AbstractGuardAuthenticator
 
     public function getUser($credentials, UserProviderInterface $userProvider)
     {
-        $payload = $this->authenticationService->verifyJWTToken($credentials['token'], $this->parameterBag->get('public_key'));
+        $publicKey = $this->commonGroundService->getResourceList(['component'=>'uc', 'type'=>'public_key']);
+        $payload = $this->authenticationService->verifyJWTToken($credentials['token'], $publicKey);
 
         $user = $this->commonGroundService->getResource(['component'=>'uc', 'type'=>'users', 'id' => $payload['userId']], [], true, false, true, false, false);
         $session = $this->commonGroundService->getResource(['component'=>'uc', 'type'=>'sessions', 'id' => $payload['session']], [], true, false, true, false, false);
@@ -70,7 +72,7 @@ class CommongroundUserTokenAuthenticator extends AbstractGuardAuthenticator
         if (!$user || $user['username'] != $payload['username']) {
             throw new AuthenticationException('The provided token does not match the user it refers to');
         }
-        if (!$session || $session['expiry'] < new \DateTime('now') || !$session['valid']) {
+        if (!$session || new DateTime($session['expiry']) < new DateTime('now') || !$session['valid']) {
             throw new AuthenticationException('The provided token refers to an invalid session');
         }
 
