@@ -151,7 +151,7 @@ class AuthenticationService
     {
         $algorithmManager = new AlgorithmManager([new HS256(), new RS512()]);
         $jwsVerifier = new JWSVerifier($algorithmManager);
-        $publicKeyFile = $this->fileService->writeFile('publickey', base64_decode($publicKey));
+        $publicKeyFile = $this->fileService->writeFile('publickey', $publicKey);
         $jwk = JWKFactory::createFromKeyFile($publicKeyFile, null, []);
 
         $serializerManager = new JWSSerializerManager([new CompactSerializer()]);

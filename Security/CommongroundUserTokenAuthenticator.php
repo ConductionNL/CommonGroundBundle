@@ -12,6 +12,7 @@ namespace Conduction\CommonGroundBundle\Security;
 use Conduction\CommonGroundBundle\Security\User\CommongroundUser;
 use Conduction\CommonGroundBundle\Service\AuthenticationService;
 use Conduction\CommonGroundBundle\Service\CommonGroundService;
+use DateTime;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -62,12 +63,17 @@ class CommongroundUserTokenAuthenticator extends AbstractGuardAuthenticator
 
     public function getUser($credentials, UserProviderInterface $userProvider)
     {
-        $payload = $this->authenticationService->verifyJWTToken($credentials['token'], $this->parameterBag->get('public_key'));
+        $publicKey = $this->commonGroundService->getResourceList(['component'=>'uc', 'type'=>'public_key']);
+        $payload = $this->authenticationService->verifyJWTToken($credentials['token'], $publicKey);
 
         $user = $this->commonGroundService->getResource(['component'=>'uc', 'type'=>'users', 'id' => $payload['userId']], [], true, false, true, false, false);
+        $session = $this->commonGroundService->getResource(['component'=>'uc', 'type'=>'sessions', 'id' => $payload['session']], [], true, false, true, false, false);
 
-        if (!$user || $user['username'] != $payload['username']) {
+        if (!$user) {
             throw new AuthenticationException('The provided token does not match the user it refers to');
+        }
+        if (!$session || new DateTime($session['expiry']) < new DateTime('now') || !$session['valid']) {
+            throw new AuthenticationException('The provided token refers to an invalid session');
         }
 
         if (!in_array('ROLE_USER', $user['roles'])) {
