@@ -2,7 +2,7 @@
 
 namespace Conduction\CommonGroundBundle\ValueObject;
 
-class UnderInvestigation
+class UnderInvestigation implements \Serializable, \JsonSerializable
 {
     public $properties;
     public $date;
@@ -31,5 +31,23 @@ class UnderInvestigation
     public function getDate()
     {
         return $this->date;
+    }
+
+    public function jsonSerialize()
+    {
+        return  array_merge($this->properties, ['datumAanvangOnderzoek' => $this->date]);
+    }
+
+    public function serialize()
+    {
+        return json_encode($this->jsonSerialize());
+    }
+
+    public function unserialize($serialized)
+    {
+        $normalized = json_decode($serialized, true);
+        $this->date = $normalized['datumAanvangOnderzoek'];
+        unset($normalized['datumAanvangOnderzoek']);
+        $this->properties = $normalized;
     }
 }
