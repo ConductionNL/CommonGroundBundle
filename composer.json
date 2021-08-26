@@ -35,7 +35,7 @@
 		"symfony/cache" : "^5.0@stable",
 		"symfony/cache-contracts" : "^1.1@stable",
 		"symfony/console" : "^5.0@stable",
-		"doctrine/doctrine-bundle": "^1.6 || ^2.0",
+		"doctrine/doctrine-bundle": "^1.6 || ^2.0 || ^2.4",
 		"doctrine/doctrine-fixtures-bundle": "^3.2",
 		"guzzlehttp/guzzle": "^6.3",
 		"knplabs/knp-markdown-bundle": "^1.8",
