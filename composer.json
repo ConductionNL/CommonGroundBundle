@@ -33,7 +33,7 @@
 		"api-platform/core" : "^2.4@stable",
 		"api-platform/schema-generator" : "^3.0",
 		"symfony/cache" : "^5.0@stable",
-		"symfony/cache-contracts" : "^1.1@stable",
+		"symfony/cache-contracts" : "^2.4",
 		"symfony/console" : "^5.0@stable",
 		"doctrine/doctrine-bundle": "^1.6 || ^2.0 || ^2.4",
 		"doctrine/doctrine-fixtures-bundle": "^3.2",
