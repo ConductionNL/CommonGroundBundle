@@ -31,7 +31,7 @@
 		"symfony/event-dispatcher" : "^5.0",
 		"api-platform/api-pack" : "^1.2@stable",
 		"api-platform/core" : "^2.4@stable",
-		"api-platform/schema-generator" : "^2.1@stable",
+		"api-platform/schema-generator" : "^3.0",
 		"symfony/cache" : "^5.0@stable",
 		"symfony/cache-contracts" : "^1.1@stable",
 		"symfony/console" : "^5.0@stable",
