@@ -156,7 +156,12 @@ class AuthenticationService
 
         $serializerManager = new JWSSerializerManager([new CompactSerializer()]);
 
-        $jws = $serializerManager->unserialize($token);
+        try {
+            $jws = $serializerManager->unserialize($token);
+        } catch (\Exception $e) {
+            throw new AuthenticationException('Unauthorized: The provided Authorization header is invalid', 401);
+        }
+
         if ($jwsVerifier->verifyWithKey($jws, $jwk, 0)) {
             $this->fileService->removeFile($publicKeyFile);
 
