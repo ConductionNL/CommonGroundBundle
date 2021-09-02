@@ -93,10 +93,11 @@ class VrcService
         }
     }
 
-    /*
-     * This function translates nested objects on a request to commonground resources
+    /**
+     * This function translates nested objects on a request to commonground resources.
      *
      * @param array $request The request before stage completion checks
+     *
      * @return array The resourceType afther stage completion checks
      */
     public function createCommongroundResources($request)
@@ -116,7 +117,7 @@ class VrcService
             }
 
             // lets check if the component is a commonground resource
-            if (is_array($value) && array_key_exists('iri', $property) && ($property['format'] == 'url' || $property['format'] == 'uri') && $component = explode('/', $property['iri'])) {
+            if (is_array($value) && is_array($property) && array_key_exists('iri', $property) && ($property['format'] == 'url' || $property['format'] == 'uri') && $component = explode('/', $property['iri'])) {
                 //&& count($component) == 2
 
                 // Lets support arrays
@@ -135,6 +136,11 @@ class VrcService
                     if ($this->checkIfEmpty($value)) {
                         unset($request['properties'][$key]);
                     } elseif (is_array($value) || !$this->commonGroundService->isResource($value)) {
+                        foreach ($value as $key2 => $prop) {
+                            if (empty($prop)) {
+                                unset($value[$key2]);
+                            }
+                        }
                         $createdResource = $this->commonGroundService->saveResource($value, ['component' => $component[0], 'type' => $component[1]]);
                         if (is_array($createdResource) && key_exists('@id', $createdResource)) {
                             $request['properties'][$key] = $createdResource['@id'];
@@ -267,7 +273,7 @@ class VrcService
          */
         foreach ($requestCalendars as $calendar) {
             // create or update  event
-            $events = $this->commonGroundService->getResourceList(['component' => 'arc', 'type' => 'events'], ['calendar.id' =>$calendar, 'resource' => $request['@id']])['hydra:member'];
+            $events = $this->commonGroundService->getResourceList(['component' => 'arc', 'type' => 'events'], ['calendar.id' => $this->commonGroundService->getUuidFromUrl($calendar), 'resource' => $request['@id']])['hydra:member'];
 
             if (count($events) > 0) {
                 $event = $events[0];
@@ -282,7 +288,7 @@ class VrcService
                 $event['description'] = $requestType['name'];
                 $event['organization'] = $request['organization'];
                 $event['resource'] = $request['@id'];
-                $event['calendar'] = $calendar;
+                $event['calendar'] = '/calendars/'.$this->commonGroundService->getUuidFromUrl($calendar);
                 $event['startDate'] = $startDate->format('Y-m-d H:i:s');
                 $event['endDate'] = $endDate->format('Y-m-d H:i:s');
                 $event['priority'] = 1;
@@ -374,6 +380,7 @@ class VrcService
 
             // We have a new order so will need to write the order to the request
             $request['order'] = $order['@id'];
+
             unset($request['submitters']);
             unset($request['children']);
             unset($request['parent']);
@@ -381,6 +388,7 @@ class VrcService
         } else {
             $order = $this->commonGroundService->getResource($request['order'], [], true);
         }
+        $orderIRI = "/orders/{$order['id']}";
 
         /*
          * Lets loop trough al the calendars and create or update the nececery events
@@ -408,7 +416,7 @@ class VrcService
             }
 
             $orderItem['quantity'] = 1;
-            $orderItem['order'] = $request['order'];
+            $orderItem['order'] = $orderIRI;
             $requestItems[$offer['@id']] = $orderItem;
         }
 
@@ -448,8 +456,8 @@ class VrcService
             if (count($invoices) > 0) {
                 $invoice = $invoices[0];
             } else {
-                $post = ['url'=>$request['order']];
-                $invoice = $this->commonGroundService->saveResource($post, ['component' => 'bc', 'type' => 'order']);
+                //$post = ['url'=>$request['order']];
+                //$invoice = $this->commonGroundService->saveResource($post, ['component' => 'bc', 'type' => 'order']);
             }
         }
 

@@ -127,14 +127,14 @@ class CommongroundProvider implements UserProviderInterface
             case 'person':
                 $resident = $this->checkResidence('person', $user, null);
 
-                return new CommongroundUser($user['naam']['voornamen'].' '.$user['naam']['geslachtsnaam'], $user['id'], $user['naam']['voornamen'].' '.$user['naam']['geslachtsnaam'], null, $user['roles'], $user['@id'], null, 'person', $resident);
+                return new CommongroundUser($user['naam']['voornamen'].' '.$user['naam']['geslachtsnaam'], $user['naam']['voornamen'], $user['naam']['voornamen'].' '.$user['naam']['geslachtsnaam'], null, $user['roles'], $person, null, 'person', $resident);
             case 'organization':
                 $resident = $this->checkResidence('organization', $user, $kvk);
 
-                return new CommongroundUser($kvk['name'], $user['id'], $kvk['name'], null, $user['roles'], $user['@id'], $kvk['id'], 'organization', $resident);
+                return new CommongroundUser($kvk['name'], $user['id'], $kvk['name'], null, $user['roles'], $person, $kvk['id'], 'organization', $resident);
             case 'user':
                 if (empty($user['person'])) {
-                    throw new \Exception('This user has no person. ID: '.$user['id']);
+                    return new CommongroundUser($user['username'], $user['id'], $user['username'], null, $user['roles'], $user['person'], $user['organization'], 'user');
                 }
                 $person = $this->commonGroundService->getResource($user['person']);
 

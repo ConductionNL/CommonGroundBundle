@@ -73,7 +73,7 @@ class CommongroundUserAuthenticator extends AbstractGuardAuthenticator
     public function getCredentials(Request $request)
     {
         $credentials = [
-            'username'   => $request->request->get('username'),
+            'username'   => strtolower($request->request->get('username')),
             'password'   => $request->request->get('password'),
             'csrf_token' => $request->request->get('_csrf_token'),
         ];
@@ -148,16 +148,17 @@ class CommongroundUserAuthenticator extends AbstractGuardAuthenticator
 
     public function onAuthenticationFailure(Request $request, AuthenticationException $exception)
     {
-        if ($this->params->get('app_subpath') && $this->params->get('app_subpath') != 'false') {
-            return new RedirectResponse('/'.$this->params->get('app_subpath').$this->router->generate('app_user_login', []));
-        }
+        $backUrl = $this->session->get('backUrl', false);
 
-        $url = $this->router->generate('app_user_login', [], UrlGeneratorInterface::RELATIVE_PATH);
-        if ($url == '') {
-            $url = '/login';
-        }
+        $this->session->remove('backUrl');
 
-        return new RedirectResponse($url);
+        $this->session->set('wrongPassword', true);
+
+        if ($backUrl) {
+            return new RedirectResponse($backUrl);
+        } else {
+            return new RedirectResponse($this->router->generate('app_user_login'));
+        }
     }
 
     /**

@@ -90,7 +90,8 @@ class FieldsAndExtendSubscriber implements EventSubscriberInterface
 
             switch ($renderType) {
                 case 'jsonld':
-                    $response['@context'] = $array[0]['@context'];
+                    if(count($array) > 0)
+                        $response['@context'] = $array[0]['@context'];
                     $response['@id'] = $event->getRequest()->getPathInfo();
                     $response['@type'] = 'hydra:Collection';
                     $response['hydra:member'] = array_values($array);
@@ -139,7 +140,7 @@ class FieldsAndExtendSubscriber implements EventSubscriberInterface
             Response::HTTP_OK,
             ['content-type' => $contentType]
         );
-        $this->commonGroundService->setHeader('Authorization', $this->params->get('app_commonground_key'));
+        $this->commonGroundService->setHeader('Authorization', $this->params->get('app_application_key'));
         $event->setResponse($response);
     }
 

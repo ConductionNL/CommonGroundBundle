@@ -36,12 +36,9 @@ class CommongroundGithubAuthenticator extends AbstractGuardAuthenticator
     private $csrfTokenManager;
     private $router;
     private $urlGenerator;
-    /**
-     * @var FlashBagInterface
-     */
     private $flash;
 
-    public function __construct(EntityManagerInterface $em, ParameterBagInterface $params, CommonGroundService $commonGroundService, CsrfTokenManagerInterface $csrfTokenManager, RouterInterface $router, UrlGeneratorInterface $urlGenerator, SessionInterface $session, FlashBagInterface $flash)
+    public function __construct(EntityManagerInterface $em, ParameterBagInterface $params, CommonGroundService $commonGroundService, CsrfTokenManagerInterface $csrfTokenManager, RouterInterface $router, UrlGeneratorInterface $urlGenerator, SessionInterface $session, FlashBagInterface $flashBag)
     {
         $this->em = $em;
         $this->params = $params;
@@ -50,7 +47,7 @@ class CommongroundGithubAuthenticator extends AbstractGuardAuthenticator
         $this->router = $router;
         $this->urlGenerator = $urlGenerator;
         $this->session = $session;
-        $this->flash = $flash;
+        $this->flash = $flashBag;
     }
 
     /**
@@ -145,6 +142,7 @@ class CommongroundGithubAuthenticator extends AbstractGuardAuthenticator
         $application = $this->commonGroundService->cleanUrl(['component'=>'wrc', 'type'=>'applications', 'id'=>$this->params->get('app_id')]);
         $providers = $this->commonGroundService->getResourceList(['component' => 'uc', 'type' => 'providers'], ['type' => 'github', 'application' => $this->params->get('app_id')])['hydra:member'];
         $tokens = $this->commonGroundService->getResourceList(['component' => 'uc', 'type' => 'tokens'], ['token' => (string) $credentials['id'], 'provider.name' => $providers[0]['name']])['hydra:member'];
+        $allowed = true;
 
         if (!$tokens || count($tokens) < 1) {
             $users = $this->commonGroundService->getResourceList(['component'=>'uc', 'type'=>'users'], ['username'=> $credentials['username']], true, false, true, false, false);
@@ -152,17 +150,12 @@ class CommongroundGithubAuthenticator extends AbstractGuardAuthenticator
 
             // User dosnt exist
             if (count($users) < 1) {
-
-                //create email
-                $emailObect = [];
-                $emailObect['name'] = $credentials['email'];
-                $emailObect['email'] = $credentials['email'];
+                $exist = false;
 
                 //create person
                 $person = [];
                 $name = explode(' ', $credentials['name']);
                 $person['givenName'] = $name[0];
-                $person['emails'] = [$emailObect];
 
                 $person = $this->commonGroundService->createResource($person, ['component' => 'cc', 'type' => 'people']);
 
@@ -173,6 +166,7 @@ class CommongroundGithubAuthenticator extends AbstractGuardAuthenticator
                 $user['person'] = $this->commonGroundService->cleanUrl(['component' => 'cc', 'type' => 'people', 'id' => $person['id']]);
                 $user = $this->commonGroundService->createResource($user, ['component' => 'uc', 'type' => 'users']);
             } else {
+                $exist = true;
                 $user = $users[0];
 
                 if (isset($user['person'])) {
@@ -201,15 +195,24 @@ class CommongroundGithubAuthenticator extends AbstractGuardAuthenticator
             }
 
             //create token
+            $now = new \DateTime('now');
             $token = [];
             $token['token'] = (string) $credentials['id'];
             $token['user'] = 'users/'.$user['id'];
             $token['provider'] = 'providers/'.$providers[0]['id'];
+            if (!$exist) {
+                $token['dateAccepted'] = $now->format('Y-m-d');
+            } else {
+                $this->session->set('notAllowed', true);
+            }
             $token = $this->commonGroundService->createResource($token, ['component' => 'uc', 'type' => 'tokens']);
 
-            $token = $this->commonGroundService->getResourceList(['component' => 'uc', 'type' => 'tokens'], ['token' => (string) $credentials['id'], 'provider.name' => $providers[0]['name']])['hydra:member'];
+            $token = $this->commonGroundService->getResourceList(['component' => 'uc', 'type' => 'tokens'], ['token' => $credentials['id'], 'provider.name' => $providers[0]['name']])['hydra:member'][0];
         } else {
             $token = $tokens[0];
+            if (!isset($token['dateAccepted']) || empty($token['dateAccepted'])) {
+                $this->session->set('notAllowed', true);
+            }
             // Deze $urls zijn een hotfix voor niet werkende @id's op de cgb cgs
             $userUlr = $this->commonGroundService->cleanUrl(['component'=>'uc', 'type'=>'users', 'id'=>$token['user']['id']]);
             $user = $this->commonGroundService->getResource($userUlr);
@@ -241,6 +244,9 @@ class CommongroundGithubAuthenticator extends AbstractGuardAuthenticator
 
         $person = $this->commonGroundService->getResource($user['person']);
 
+        $this->session->set('tokenId', $token['id']);
+        $this->session->set('username', $user['username']);
+
         $log = [];
         $log['address'] = $_SERVER['REMOTE_ADDR'];
         $log['method'] = 'Github';
@@ -267,6 +273,10 @@ class CommongroundGithubAuthenticator extends AbstractGuardAuthenticator
 
     public function checkCredentials($credentials, UserInterface $user)
     {
+        if ($this->session->get('notAllowed')) {
+            return false;
+        }
+
         $application = $this->commonGroundService->cleanUrl(['component'=>'wrc', 'type'=>'applications', 'id'=>$this->params->get('app_id')]);
         $providers = $this->commonGroundService->getResourceList(['component' => 'uc', 'type' => 'providers'], ['type' => 'github', 'application' => $this->params->get('app_id')])['hydra:member'];
         $tokens = $this->commonGroundService->getResourceList(['component' => 'uc', 'type' => 'tokens'], ['token' => $credentials['id'], 'provider.name' => $providers[0]['name']])['hydra:member'];
@@ -300,6 +310,19 @@ class CommongroundGithubAuthenticator extends AbstractGuardAuthenticator
 
     public function onAuthenticationFailure(Request $request, AuthenticationException $exception)
     {
+        if ($this->session->get('notAllowed')) {
+            $backUrl = $this->session->get('backUrl', false);
+            $this->flash->add('error', 'Authentication method not yet enabled. An email has been send for confirmation.');
+
+            $this->session->remove('backUrl');
+
+            if ($backUrl) {
+                return new RedirectResponse($backUrl);
+            } else {
+                return new RedirectResponse($this->router->generate('app_default_index'));
+            }
+        }
+
         return new RedirectResponse($this->router->generate('app_user_github'));
     }
 

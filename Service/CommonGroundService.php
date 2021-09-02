@@ -18,7 +18,7 @@ use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 // Events
 use Symfony\Component\HttpKernel\Exception\HttpException;
-use Symfony\Component\Translation\TranslatorInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 class CommonGroundService
 {
@@ -66,6 +66,8 @@ class CommonGroundService
      */
     private $local;
 
+    private AuthenticationService $authenticationService;
+
     public function __construct(
         ParameterBagInterface $params,
         SessionInterface $session,
@@ -90,9 +92,7 @@ class CommonGroundService
         $this->headers = [
             'Accept'        => 'application/ld+json',
             'Content-Type'  => 'application/json',
-            'Authorization' => $this->params->get('app_commonground_key'),
-            // NLX
-            'X-NLX-Request-Application-Id' => $this->params->get('app_commonground_id'), // the id of the application performing the request
+            'Authorization' => $this->params->get('app_application_key'),
             // NL Api Strategie
             'Accept-Crs'  => 'EPSG:4326',
             'Content-Crs' => 'EPSG:4326',
@@ -134,6 +134,8 @@ class CommonGroundService
         if (!empty($this->request)) {
             $this->local = $this->request->getLocale();
         }
+
+        $this->authenticationService = new AuthenticationService($params);
     }
 
     public function isCommonGround(string $url)
@@ -164,7 +166,7 @@ class CommonGroundService
         }
 
         $componentUrl = "{$parsedUrl['scheme']}://{$parsedUrl['host']}{$componentPath}";
-        $components = $this->params->get('common_ground.components');
+        $components = $this->params->get('components');
         foreach ($components as $code => $component) {
             if ($component['location'] == $componentUrl || strpos($component['location'], $componentUrl, ) !== false) {
                 $returnUrl['component'] = $code;
@@ -228,46 +230,56 @@ class CommonGroundService
         $auth = false;
         $headers = $this->headers;
 
-        $query = $this->convertQuery($query);
+        /*
+         * Pagination might have been aplied, if so we would like to pass that trough
+         */
+        if ($this->request instanceof Request) {
+            if ($start = $this->request->query->get('start')) {
+                $query['start'] = (int) $start;
+            }
+            if ($limit = $this->request->query->get('limit')) {
+                $query['limit'] = (int) $limit;
+            }
+        }
 
         // Component specific congiguration
         if ($component && array_key_exists('accept', $component)) {
             $headers['Accept'] = $component['accept'];
         }
-        if ($component && array_key_exists('auth', $component)) {
-            switch ($component['auth']) {
-                case 'jwt':
-                    $headers['Authorization'] = 'Bearer '.$this->getJwtToken($component['code']);
-                    break;
-                case 'username-password':
-                    $auth = [$component['username'], $component['password']];
+        if ($component && array_key_exists('locale', $component)) {
+            $this->setLocal($component['locale']);
+        }
+
+        $query = $this->convertQuery($query);
+
+        if (defined($this->request) && $this->request) {
+            if ($start = $this->request->query->get('start')) {
+                $query['start'] = (int) $start;
+            }
+            if ($limit = $this->request->query->get('limit')) {
+                $query['limit'] = (int) $limit;
             }
         }
 
+        $requestOption = $this->authenticationService->setAuthorization([
+            'query'       => $query,
+            'headers'     => $headers,
+            'auth'        => $auth,
+            'http_errors' => $error,
+        ], $component);
+
         if (!$async) {
             try {
-                $response = $this->client->request('GET', $url, [
-                    'query'       => $query,
-                    'headers'     => $headers,
-                    'auth'        => $auth,
-                    'http_errors' => $error,
-                ]);
+                $response = $this->client->request('GET', $url, $requestOption);
             } catch (\GuzzleHttp\Exception\ClientException $e) {
-                var_dump($e->getResponse()->getBody()->getContents()); //Log::error($e->getResponse()->getBody()->getContents());
-
+//                var_dump($e->getResponse()->getBody()->getContents()); //Log::error($e->getResponse()->getBody()->getContents());
                 throw $e;
             }
         } else {
             try {
-                $response = $this->client->requestAsync('GET', $url, [
-                    'query'       => $query,
-                    'headers'     => $headers,
-                    'auth'        => $auth,
-                    'http_errors' => $error,
-                ]);
+                $response = $this->client->requestAsync('GET', $url, $requestOption);
             } catch (\GuzzleHttp\Exception\ClientException $e) {
-                var_dump($e->getResponse()->getBody()->getContents()); //Log::error($e->getResponse()->getBody()->getContents());
-
+//                var_dump($e->getResponse()->getBody()->getContents()); //Log::error($e->getResponse()->getBody()->getContents());
                 throw $e;
             }
         }
@@ -365,47 +377,37 @@ class CommonGroundService
         $headers = $this->headers;
         $headers['X-NLX-Request-Subject-Identifier'] = $url;
 
-        $query = $this->convertQuery($query);
-
         // Component specific congiguration
         if ($component && array_key_exists('accept', $component)) {
             $headers['Accept'] = $component['accept'];
         }
-        if ($component && array_key_exists('auth', $component)) {
-            switch ($component['auth']) {
-                case 'jwt':
-                    $headers['Authorization'] = 'Bearer '.$this->getJwtToken($component['code']);
-                    break;
-                case 'username-password':
-                    $auth = [$component['username'], $component['password']];
-            }
+        if ($component && array_key_exists('locale', $component)) {
+            $this->setLocal($component['locale']);
         }
 
+        $query = $this->convertQuery($query);
+
+        $requestOptions = $this->authenticationService->setAuthorization([
+            'query'       => $query,
+            'headers'     => $headers,
+            'auth'        => $auth,
+            'http_errors' => $error,
+        ], $component);
         if (!$async) {
             try {
-                $response = $this->client->request('GET', $url, [
-                    'query'       => $query,
-                    'headers'     => $headers,
-                    'auth'        => $auth,
-                    'http_errors' => $error,
-                ]);
+                $response = $this->client->request('GET', $url, $requestOptions);
             } catch (\GuzzleHttp\Exception\ClientException $e) {
                 // here's the good stuff
-                var_dump($e->getResponse()->getBody()->getContents()); //Log::error($e->getResponse()->getBody()->getContents());
+//                var_dump($e->getResponse()->getBody()->getContents()); //Log::error($e->getResponse()->getBody()->getContents());
 
                 throw $e;
             }
         } else {
             try {
-                $response = $this->client->requestAsync('GET', $url, [
-                    'query'       => $query,
-                    'headers'     => $headers,
-                    'auth'        => $auth,
-                    'http_errors' => $error,
-                ]);
+                $response = $this->client->requestAsync('GET', $url, $requestOptions);
             } catch (\GuzzleHttp\Exception\ClientException $e) {
                 // here's the good stuff
-                var_dump($e->getResponse()->getBody()->getContents()); //Log::error($e->getResponse()->getBody()->getContents());
+//                var_dump($e->getResponse()->getBody()->getContents()); //Log::error($e->getResponse()->getBody()->getContents());
 
                 throw $e;
             }
@@ -499,50 +501,30 @@ class CommonGroundService
         if ($component && array_key_exists('accept', $component)) {
             $headers['Accept'] = $component['accept'];
         }
-        if ($component && array_key_exists('auth', $component)) {
-            switch ($component['auth']) {
-                case 'jwt':
-                    $headers['Authorization'] = 'Bearer '.$this->getJwtToken($component['code']);
-                    break;
-                case 'username-password':
-                    $auth = [$component['username'], $component['password']];
-            }
-        }
-
         $resource = $this->cleanResource($resource);
 
-        //Unset properties without values. To force empty, set an empty array ([])
-        foreach ($resource as $key => $value) {
-            if ($value === null) {
-                unset($resource[$key]);
-            }
-        }
+        $requestOptions = $this->authenticationService->setAuthorization([
+            'body'        => json_encode($resource),
+            'headers'     => $headers,
+            'auth'        => $auth,
+            'http_errors' => $error,
+        ], $component);
 
         if (!$async) {
             try {
-                $response = $this->client->request('PUT', $url, [
-                    'body'        => json_encode($resource),
-                    'headers'     => $headers,
-                    'auth'        => $auth,
-                    'http_errors' => $error,
-                ]);
+                $response = $this->client->request('PUT', $url, $requestOptions);
             } catch (\GuzzleHttp\Exception\ClientException $e) {
                 // here's the good stuff
-                var_dump($e->getResponse()->getBody()->getContents()); //Log::error($e->getResponse()->getBody()->getContents());
+//                var_dump($e->getResponse()->getBody()->getContents()); //Log::error($e->getResponse()->getBody()->getContents());
 
                 throw $e;
             }
         } else {
             try {
-                $response = $this->client->requestAsync('PUT', $url, [
-                    'body'        => json_encode($resource),
-                    'headers'     => $headers,
-                    'auth'        => $auth,
-                    'http_errors' => $error,
-                ]);
+                $response = $this->client->requestAsync('PUT', $url, $requestOptions);
             } catch (\GuzzleHttp\Exception\ClientException $e) {
                 // here's the good stuff
-                var_dump($e->getResponse()->getBody()->getContents()); //Log::error($e->getResponse()->getBody()->getContents());
+//                var_dump($e->getResponse()->getBody()->getContents()); //Log::error($e->getResponse()->getBody()->getContents());
 
                 throw $e;
             }
@@ -625,44 +607,30 @@ class CommonGroundService
         if ($component && array_key_exists('accept', $component)) {
             $headers['Accept'] = $component['accept'];
         }
-        if ($component && array_key_exists('auth', $component)) {
-            switch ($component['auth']) {
-                case 'jwt':
-                    $headers['Authorization'] = 'Bearer '.$this->getJwtToken($component['code']);
-                    break;
-                case 'username-password':
-                    $auth = [$component['username'], $component['password']];
-            }
-        }
-
         $resource = $this->cleanResource($resource);
+        $requestOptions = $this->authenticationService->setAuthorization([
+            'body'        => json_encode($resource),
+            'headers'     => $headers,
+            'auth'        => $auth,
+            'http_errors' => $error,
+        ], $component);
 
         if (!$async) {
             try {
-                $response = $this->client->request('POST', $url, [
-                    'body'        => json_encode($resource),
-                    'headers'     => $headers,
-                    'auth'        => $auth,
-                    'http_errors' => $error,
-                ]);
+                $response = $this->client->request('POST', $url, $requestOptions);
             } catch (\GuzzleHttp\Exception\ClientException $e) {
                 // here's the good stuff
-                var_dump($e->getResponse()->getBody()->getContents()); //Log::error($e->getResponse()->getBody()->getContents());
+//                var_dump($e->getResponse()->getBody()->getContents()); //Log::error($e->getResponse()->getBody()->getContents());
 
                 throw $e;
             }
         } else {
             try {
-                $response = $this->client->requestAsync('POST', $url, [
-                    'body'        => json_encode($resource),
-                    'headers'     => $headers,
-                    'auth'        => $auth,
-                    'http_errors' => $error,
-                ]);
+                $response = $this->client->requestAsync('POST', $url, $requestOptions);
             } catch (\GuzzleHttp\Exception\ClientException $e) {
                 // here's the good stuff
-                var_dump($e->getResponse()->getBody()->getContents());
-                var_dump($e->getResponse()->getBody()->getContents()); //Log::error($e->getResponse()->getBody()->getContents());
+//                var_dump($e->getResponse()->getBody()->getContents());
+//                var_dump($e->getResponse()->getBody()->getContents()); //Log::error($e->getResponse()->getBody()->getContents());
 
                 throw $e;
             }
@@ -743,37 +711,26 @@ class CommonGroundService
         if ($component && array_key_exists('accept', $component)) {
             $headers['Accept'] = $component['accept'];
         }
-        if ($component && array_key_exists('auth', $component)) {
-            switch ($component['auth']) {
-                case 'jwt':
-                    $headers['Authorization'] = 'Bearer '.$this->getJwtToken($component['code']);
-                    break;
-                case 'username-password':
-                    $auth = [$component['username'], $component['password']];
-            }
-        }
+        $requestOptions = $this->authenticationService->setAuthorization([
+            'headers'     => $headers,
+            'auth'        => $auth,
+        ], $component);
 
         if (!$async) {
             try {
-                $response = $this->client->request('DELETE', $url, [
-                    'headers' => $headers,
-                    'auth'    => $auth,
-                ]);
+                $response = $this->client->request('DELETE', $url, $requestOptions);
             } catch (\GuzzleHttp\Exception\ClientException $e) {
                 // here's the good stuff
-                var_dump($e->getResponse()->getBody()->getContents()); //Log::error($e->getResponse()->getBody()->getContents());
+//                var_dump($e->getResponse()->getBody()->getContents()); //Log::error($e->getResponse()->getBody()->getContents());
 
                 throw $e;
             }
         } else {
             try {
-                $response = $this->client->requestAsync('DELETE', $url, [
-                    'headers' => $headers,
-                    'auth'    => $auth,
-                ]);
+                $response = $this->client->requestAsync('DELETE', $url, $requestOptions);
             } catch (\GuzzleHttp\Exception\ClientException $e) {
                 // here's the good stuff
-                var_dump($e->getResponse()->getBody()->getContents()); //Log::error($e->getResponse()->getBody()->getContents());
+//                var_dump($e->getResponse()->getBody()->getContents()); //Log::error($e->getResponse()->getBody()->getContents());
 
                 throw $e;
             }
@@ -854,9 +811,9 @@ class CommonGroundService
                 $this->throwMessage('error', $resource, 'could not be saved');
             }
         } else {
-            if ($createdResource = $this->createResource($resource, $endpoint, false, $autowire)) {
+            if ($createdResource = $this->createResource($resource, $endpoint, false, $autowire, $events)) {
                 // Lets renew the resource
-                $resource = $this->getResource($createdResource['@id'], [], false, false, $autowire);
+                $resource = $this->getResource($createdResource['@id'], [], false, false, $autowire, $events);
                 if ($succesMessages) {
                     $this->throwMessage('success', $resource, 'created');
                 }
@@ -926,7 +883,7 @@ class CommonGroundService
      */
     public function getApplication($force = false, $async = false)
     {
-        $application = $this->getResource(['component' => 'wrc', 'type' => 'applications', 'id' => $this->params->get('common_ground.app.id')]);
+        $application = $this->getResource(['component' => 'wrc', 'type' => 'applications', 'id' => $this->params->get('app_id')]);
 
         return $application;
     }
@@ -952,6 +909,13 @@ class CommonGroundService
         unset($resource['id']);
         unset($resource['_links']);
         unset($resource['_embedded']);
+
+        //Unset properties without values. To force empty, set an empty array ([])
+        foreach ($resource as $key => $value) {
+            if ($value === null) {
+                unset($resource[$key]);
+            }
+        }
 
         return $resource;
     }
@@ -1094,22 +1058,12 @@ class CommonGroundService
     /*
      * Finds @id keys and replaceses the relative link with an absolute link
      */
-    private function convertAtId(array $object, array $parsedUrl)
+    private function convertAtId(array $object, array $parsedUrl): array
     {
         if (array_key_exists('@id', $object)) {
-            if (
-                $this->params->has('app_subpath_routing') &&
-                ($this->params->get('app_subpath_routing') && $this->params->get('app_subpath_routing') !== 'false') &&
-                (!$this->params->get('app_internal') || $this->params->get('app_internal') === 'false')
-            ) {
-                $path = explode('/', $parsedUrl['path']);
-                //@TODO this should be more dynamic
-                $path = array_slice($path, 0, 4);
-                $path = implode('/', $path);
-                $object['@id'] = $parsedUrl['scheme'].'://'.$parsedUrl['host'].$path.$object['@id'];
-            } else {
-                $object['@id'] = $parsedUrl['scheme'].'://'.$parsedUrl['host'].$object['@id'];
-            }
+            $atId = $object['@id'];
+            $object['@id'] = "{$parsedUrl['scheme']}://{$parsedUrl['host']}/".ltrim(HelperService::replaceOverlap(ltrim($parsedUrl['path'], '/'), ltrim($atId, '/')), '/');
+            $parsedUrl['path'] = ltrim(HelperService::removeOverlap(ltrim($parsedUrl['path'], '/'), ltrim($atId, '/')), '/');
         }
         foreach ($object as $key => $subObject) {
             if (is_array($subObject)) {
@@ -1118,6 +1072,31 @@ class CommonGroundService
         }
 
         return $object;
+    }
+
+    private function getComponentFromUrl(array $parsedUrl): string
+    {
+        $path = explode('/', $parsedUrl['path']);
+        $apiKey = array_search('api', $path);
+        $versionKey = array_search('v1', $path);
+        if ($apiKey && $versionKey && count($path) > $versionKey + 1) {
+            $component = $path[$versionKey + 1];
+        } else {
+            $component = explode('.', $parsedUrl['host'])[0];
+        }
+        if (
+            $parsedUrl['host'] != $this->params->get('app_domain') &&
+            $parsedUrl['host'] != "{$this->params->get('app_env')}.{$this->params->get('app_domain')}" &&
+            $parsedUrl['host'] != "$component.{$this->params->get('app_env')}.{$this->params->get('app_domain')}"
+        ) {
+            if (strpos($component, $parsedUrl['host']) !== false) {
+                return $parsedUrl['host'];
+            } else {
+                return "{$parsedUrl['scheme']}://{$parsedUrl['host']}/api/v1/$component";
+            }
+        }
+
+        return $component;
     }
 
     /**
@@ -1174,6 +1153,7 @@ class CommonGroundService
     public function cleanUrl($url = false, $resource = false, $autowire = true)
     {
         // The Url might be an array of component information
+
         if (is_array($url) && array_key_exists('component', $url)) {
             $route = '';
             if (array_key_exists('type', $url)) {
@@ -1191,52 +1171,22 @@ class CommonGroundService
                 if (array_key_exists('autowire', $component)) {
                     $autowire = $component['autowire'];
                 }
-            } // If it is not we "gues" the endpoint (this is where we could force nlx)
-            elseif ($this->params->get('app_internal') == 'true') {
-                $url = 'http://'.$url['component'].'.'.$this->params->get('app_env').'.svc.cluster.local'.$route;
-            } elseif (
-                $this->params->get('app_subpath_routing') &&
-                $this->params->get('app_subpath_routing') != 'false' &&
-                $this->params->get('app_env') == 'prod') {
-                $url = 'https://'.$this->params->get('app_domain').'/api/'.$this->params->get('app_major_version').'/'.$url['component'].$route;
-            } elseif (
-                $this->params->get('app_subpath_routing') &&
-                $this->params->get('app_subpath_routing') != 'false') {
-                $url = 'https://'.$this->params->get('app_env').'.'.$this->params->get('app_domain').'/api/'.$this->params->get('app_major_version').'/'.$url['component'].$route;
-            } elseif ($this->params->get('app_env') == 'prod') {
-                $url = 'https://'.$url['component'].'.'.$this->params->get('app_domain').$route;
-            } else {
-                $url = 'https://'.$url['component'].'.'.$this->params->get('app_env').'.'.$this->params->get('app_domain').$route;
             }
         }
-
         if (!$url && $resource && array_key_exists('@id', $resource)) {
             $url = $resource['@id'];
         }
 
-        // Split enviroments, if the env is not dev the we need add the env to the url name
-        $parsedUrl = parse_url($url);
+        if (is_array($url)) {
+            $urlString = 'commonground.local';
+            key_exists('component', $url) ? $urlString = "{$url['component']}.$urlString" : null;
+            key_exists('type', $url) ? $urlString = "$urlString/{$url['type']}" : null;
+            key_exists('id', $url) ? $urlString = "$urlString/{$url['id']}" : null;
 
-        // We only do this on non-production enviroments
-        if ($this->params->get('app_env') != 'prod' && $autowire && strpos($url, $this->params->get('app_env').'.') === false) {
-
-            // Lets make sure we dont have doubles
-            $url = str_replace($this->params->get('app_env').'.', '', $url);
-
-            if (!$this->params->get('app_subpath_routing') || $this->params->get('app_subpath_routing') == 'false') {
-                // e.g https://wrc.larping.eu/ becomes https://wrc.dev.larping.eu/
-                $host = explode('.', $parsedUrl['host']);
-                $subdomain = $host[0];
-                $url = str_replace($subdomain.'.', $subdomain.'.'.$this->params->get('app_env').'.', $url);
-            } else {
-                $url = str_replace('https://', "https://{$this->params->get('app_env')}.", $url);
-            }
+            $url = $urlString;
         }
-
         // Remove trailing slash
-        $url = rtrim($url, '/');
-
-        return $url;
+        return rtrim($url, '/');
     }
 
     /*
@@ -1250,6 +1200,11 @@ class CommonGroundService
     public function setHeader($key, $value)
     {
         $this->headers[$key] = $value;
+    }
+
+    public function getHeader($key)
+    {
+        return $this->headers[$key];
     }
 
     /**
@@ -1269,7 +1224,7 @@ class CommonGroundService
      */
     public function setLocal($input)
     {
-        $this->local = $input;
+        $input == 'null' ? $this->local = null : $this->local = $input;
     }
 
     /*
@@ -1290,6 +1245,91 @@ class CommonGroundService
         return $host;
     }
 
+    public function getUrlFromEndpoint($endpoint, $autowire)
+    {
+        if (is_array($endpoint) && array_key_exists('component', $endpoint)) {
+            $component = $this->getComponent($endpoint['component']);
+            if (array_key_exists('accept', $endpoint)) {
+                $component['accept'] = $endpoint['accept'];
+            }
+        } else {
+            if (!is_array($endpoint) && $endpoint != null && $componentUrl = $this->isCommonGround($endpoint)) {
+                $endpoint = $componentUrl;
+                $component = $this->getComponent($endpoint['component']);
+                if (array_key_exists('accept', $endpoint)) {
+                    $component['accept'] = $endpoint['accept'];
+                }
+            } else {
+                $component = [];
+            }
+        }
+
+        return $this->cleanUrl($endpoint, false, $autowire);
+    }
+
+    /*
+     * Calls a pre-configures commonground service
+     *
+     * $component array Eather an endpoint in the form of an url or and component as array to wisch to post
+     * $content string the content of the call
+     * $query array optional query paramaters
+     * $query array optional overwrites of deafault headers
+     * $async boolean determens whether to peform the api cal asynchronus
+     *
+     * return Gu A guzzle responce object
+     */
+    public function callService(
+        array $component,
+        string $url,
+        string $content,
+        $query = [],
+        $headers = [],
+        $async = false,
+        string $type = 'GET'
+    ) {
+        $auth = false;
+        // Merge header overwrites into the default headers
+        $headers = array_merge($this->headers, $headers);
+        // Component specific congiguration
+        if ($component && array_key_exists('accept', $component)) {
+            $headers['Accept'] = $component['accept'];
+        }
+        // Lets make sure the start and limit are always integer
+        if (defined($this->request) && $this->request) {
+            if ($start = $this->request->query->get('start')) {
+                $query['start'] = (int) $start;
+            }
+            if ($limit = $this->request->query->get('limit')) {
+                $query['limit'] = (int) $limit;
+            }
+        }
+
+        $requestOptions = $this->authenticationService->setAuthorization([
+            'body'        => $content,
+            'query'       => $query,
+            'headers'     => $headers,
+            'auth'        => $auth,
+            'http_errors' => true,
+        ], $component);
+
+        // Content mee sturen
+        if (!$async) {
+            try {
+                $response = $this->client->request($type, $url, $requestOptions);
+            } catch (\GuzzleHttp\Exception\ClientException $e) {
+                return ['error' => $e->getResponse()->getBody()->getContents()];
+            }
+        } else {
+            try {
+                $response = $this->client->requestAsync($type, $url, $requestOptions);
+            } catch (\GuzzleHttp\Exception\ClientException $e) {
+                return ['error' => $e->getResponse()->getBody()->getContents()];
+            }
+        }
+
+        return $response;
+    }
+
     /*
      * Get Component settings from the configuration
      *
@@ -1299,7 +1339,7 @@ class CommonGroundService
     public function getComponent(?string $code)
     {
         // Create the list
-        $components = $this->params->get('common_ground.components');
+        $components = $this->params->get('components');
 
         // Get the component
         if (array_key_exists($code, $components)) {
@@ -1358,41 +1398,6 @@ class CommonGroundService
      */
     public function getComponentResources(string $component, $force = false)
     {
-    }
-
-    /*
-     * Create a JWT token from Component settings
-     *
-     * @param array $component The code of the component
-     * @param array The JWT token
-     */
-    public function getJwtToken(?string $component)
-    {
-        $component = $this->getComponent($component);
-
-        $userId = '';
-        $userRepresentation = '';
-
-        // Create token header as a JSON string
-        $header = json_encode(['typ' => 'JWT', 'alg' => 'HS256', 'client_identifier' => $component['id']]);
-
-        // Create token payload as a JSON string
-        $payload = json_encode(['iss' => $component['id'], 'client_id' => $component['id'], 'user_id' => $userId, 'user_representation' => $userRepresentation, 'iat' => time()]);
-
-        // Encode Header to Base64Url String
-        $base64UrlHeader = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($header));
-
-        // Encode Payload to Base64Url String
-        $base64UrlPayload = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($payload));
-
-        // Create Signature Hash
-        $signature = hash_hmac('sha256', $base64UrlHeader.'.'.$base64UrlPayload, $component['secret'], true);
-
-        // Encode Signature to Base64Url String
-        $base64UrlSignature = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($signature));
-
-        // Return JWT
-        return $base64UrlHeader.'.'.$base64UrlPayload.'.'.$base64UrlSignature;
     }
 
     /*

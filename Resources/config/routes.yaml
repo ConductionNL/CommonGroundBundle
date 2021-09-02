@@ -1,0 +1,4 @@
+# config/routes.yaml
+conduction_commonground_default_index:
+    path:       /
+    controller: Conduction\CommonGroundBundle\Controller\DefaultController::indexAction

@@ -6,16 +6,23 @@
     <services>
         <defaults autowire="true" autoconfigure="true" />
 
+        <!-- Default Controller -->
+        <service id="conduction_commonground.default_controller" class="Conduction\CommonGroundBundle\Controller\DefaultController" public="true">
+        </service>
+
         <!--CommonGround Services-->
         <service id="Conduction\CommonGroundBundle\Service\ApplicationService" />
+        <service id="Conduction\CommonGroundBundle\Service\AuthenticationService" />
         <service id="Conduction\CommonGroundBundle\Service\CamundaService" />
         <service id="Conduction\CommonGroundBundle\Service\CommonGroundService" />
+        <service id="Conduction\CommonGroundBundle\Service\FileService" />
         <service id="Conduction\CommonGroundBundle\Service\IrcService" />
         <service id="Conduction\CommonGroundBundle\Service\MessageService" />
         <service id="Conduction\CommonGroundBundle\Service\NotificationService" />
         <service id="Conduction\CommonGroundBundle\Service\NLXLogService" />
         <service id="Conduction\CommonGroundBundle\Service\PtcService" />
         <service id="Conduction\CommonGroundBundle\Service\RequestService" />
+        <service id="Conduction\CommonGroundBundle\Service\SerializerService" />
         <service id="Conduction\CommonGroundBundle\Service\VrcService" />
         <service id="Conduction\CommonGroundBundle\Service\VsbeService" />
 
@@ -30,6 +37,7 @@
         <!--CommonGround Security: Authenticators-->
         <service id="Conduction\CommonGroundBundle\Security\CommongroundApplicationAuthenticator" />
         <service id="Conduction\CommonGroundBundle\Security\CommongroundUserAuthenticator" />
+        <service id="Conduction\CommonGroundBundle\Security\CommongroundUserTokenAuthenticator" />
         <service id="Conduction\CommonGroundBundle\Security\CommongroundDigispoofAuthenticator" />
         <service id="Conduction\CommonGroundBundle\Security\CommongroundEherkenningAuthenticator" />
         <service id="Conduction\CommonGroundBundle\Security\CommongroundIdinAuthenticator" />
@@ -57,6 +65,9 @@
             <tag name="kernel.event_subscriber"/>
         </service>
         <service id="fields.and.extend.subscriber" class="Conduction\CommonGroundBundle\Subscriber\FieldsAndExtendSubscriber">
+            <tag name="kernel.event_subscriber"/>
+        </service>
+        <service id="resource.subscriber" class="Conduction\CommonGroundBundle\Subscriber\ResourceSubscriber">
             <tag name="kernel.event_subscriber"/>
         </service>
         <service id="health.check.subscriber" class="Conduction\CommonGroundBundle\Subscriber\HealthCheckSubscriber">
@@ -93,6 +104,9 @@
             <tag name="console.command"/>
         </service>
         <service id="Conduction\CommonGroundBundle\Command\PubliccodeCommand">
+            <tag name="console.command"/>
+        </service>
+        <service id="Conduction\CommonGroundBundle\Command\DocumentationCommand">
             <tag name="console.command"/>
         </service>
         <service id="Conduction\CommonGroundBundle\Command\RunVSBECommand">
