@@ -9,6 +9,10 @@ parameters:
   env(APP_COMMONGROUND_KEY): ""
   env(APP_COMMONGROUND_SECRET): ""
 
+  env(CG_2_SIDED_SSL): false
+
+  cg_2_sided_ssl: "%env(bool:CG_2_SIDED_SSL)%"
+
   common_ground.app.id: "%env(APP_COMMONGROUND_ID)%"
   app_commonground_id: "%env(APP_COMMONGROUND_ID)%"
   app_commonground_key: "%env(APP_COMMONGROUND_KEY)%"

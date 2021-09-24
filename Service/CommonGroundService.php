@@ -120,10 +120,12 @@ class CommonGroundService
             'verify' => false,
         ];
 
-        if ($this->params->has('app_certificate') && file_exists($this->params->get('app_certificate'))) {
+        if (
+            ($this->params->has('cg_2_sided_ssl') && $this->params->get('cg_2_sided_ssl')) &&
+            ($this->params->has('app_certificate') && file_exists($this->params->get('app_certificate'))) &&
+            ($this->params->has('app_ssl_key') && file_exists($this->params->get('app_ssl_key')))
+        ){
             $this->guzzleConfig['cert'] = $this->params->get('app_certificate');
-        }
-        if ($this->params->has('app_ssl_key') && file_exists($this->params->get('app_ssl_key'))) {
             $this->guzzleConfig['ssl_key'] = $this->params->get('app_ssl_key');
         }
 

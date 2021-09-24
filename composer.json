@@ -1,6 +1,6 @@
 {
 	"name" : "conduction/commongroundbundle",
-	"type" : "library",
+	"type" : "symfony-bundle",
 	"description" : "Symfony Bundle for dutch common ground functionality",
 	"keywords" : [
 		"bsn",
