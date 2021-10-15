@@ -25,7 +25,6 @@
 	],
 	"require" : {
 		"php" : "^7.4.0",
-		"symfony/contracts" : "^1.0",
 		"symfony/var-exporter" : "^5.0",
 		"symfony/maker-bundle" : "^1.11@stable",
 		"symfony/event-dispatcher" : "^5.0",
