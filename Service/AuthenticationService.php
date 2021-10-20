@@ -3,6 +3,7 @@
 namespace Conduction\CommonGroundBundle\Service;
 
 use DateTime;
+use GuzzleHttp\Client;
 use Jose\Component\Core\AlgorithmManager;
 use Jose\Component\Core\JWK;
 use Jose\Component\KeyManagement\JWKFactory;
@@ -115,6 +116,24 @@ class AuthenticationService
         return $jwsSerializer->serialize($jws, 0);
     }
 
+    public function getTokenFromUrl(array $component): string
+    {
+        $client = new Client([
+            // Base URI is used with relative requests
+            'http_errors' => false,
+            // You can set any number of default request options.
+            'timeout' => 4000.0,
+            // To work with NLX we need a couple of default headers
+            'headers' => ['Content-Type' => 'application/x-www-form-urlencoded'],
+            // Do not check certificates
+            'verify' => false,
+            'auth' => [$component['username'], $component['password']],
+        ]);
+        $response = $client->post($component['location'].'/oauth/token', ['form_params' => ['grant_type' => 'client_credentials', 'scope' => 'api']]);
+        $body = json_decode($response->getBody()->getContents(), true);
+        return $body['access_token'];
+    }
+
     public function setAuthorization(array $requestOptions, ?array $component = []): array
     {
         if ($component && array_key_exists('auth', $component)) {
@@ -126,6 +145,9 @@ class AuthenticationService
                     break;
                 case 'username-password':
                     $requestOptions['auth'] = [$component['username'], $component['password']];
+                    break;
+                case 'vrijbrp-jwt':
+                    $requestOptions['headers']['Authorization'] = "Bearer {$this->getTokenFromUrl($component)}";
                     break;
                 case 'apikey':
                 default:
