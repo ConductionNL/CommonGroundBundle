@@ -405,6 +405,7 @@ class CommonGroundService
         } else {
             try {
                 $response = $this->client->requestAsync('GET', $url, $requestOptions);
+                return $response;
             } catch (\GuzzleHttp\Exception\ClientException $e) {
                 // here's the good stuff
 //                var_dump($e->getResponse()->getBody()->getContents()); //Log::error($e->getResponse()->getBody()->getContents());
