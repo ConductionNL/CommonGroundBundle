@@ -85,7 +85,7 @@ class AuthenticationService
             'iat'                => $now->getTimestamp(),
             'client_id'          => $clientId,
             'user_id'            => $this->parameterBag->get('app_name'),
-            'user_representation'=> $this->parameterBag->get('app_name'),
+            'user_representation' => $this->parameterBag->get('app_name'),
         ]);
     }
 
@@ -129,7 +129,7 @@ class AuthenticationService
             'verify' => false,
             'auth' => [$component['username'], $component['password']],
         ]);
-        $response = $client->post($component['location'].'/oauth/token', ['form_params' => ['grant_type' => 'client_credentials', 'scope' => 'api']]);
+        $response = $client->post($component['location'] . '/oauth/token', ['form_params' => ['grant_type' => 'client_credentials', 'scope' => 'api']]);
         $body = json_decode($response->getBody()->getContents(), true);
         return $body['access_token'];
     }
@@ -141,7 +141,7 @@ class AuthenticationService
                 case 'jwt-HS256':
                 case 'jwt-RS512':
                 case 'jwt':
-                    $requestOptions['headers']['Authorization'] = 'Bearer '.$this->getJwtToken($component);
+                    $requestOptions['headers']['Authorization'] = 'Bearer ' . $this->getJwtToken($component);
                     break;
                 case 'username-password':
                     $requestOptions['auth'] = [$component['username'], $component['password']];
@@ -150,8 +150,20 @@ class AuthenticationService
                     $requestOptions['headers']['Authorization'] = "Bearer {$this->getTokenFromUrl($component)}";
                     break;
                 case 'apikey':
+                    if (array_key_exists('authorizationHeader', $component) && array_key_exists('passthroughMethod', $component)) {
+                        switch ($component['passthroughMethod']) {
+                            case 'query':
+                                $requestOptions['query'][$component['authorizationHeader']] = $component['apikey'];
+                                break;
+                            default:
+                                $requestOptions['headers'][$component['authorizationHeader']] = $component['apikey'];
+                                break;
+                        }
+                    } else {
+                        $requestOptions['headers']['Authorization'] = $component['apikey'];
+                    }
+                    break;
                 default:
-                    $requestOptions['headers']['Authorization'] = $component['apikey'];
                     break;
             }
         } else {
