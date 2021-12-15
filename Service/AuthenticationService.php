@@ -118,7 +118,7 @@ class AuthenticationService
 
     public function getTokenFromUrl(array $component): string
     {
-        $client = new Client([
+        $guzzleConfig = [
             // Base URI is used with relative requests
             'http_errors' => false,
             // You can set any number of default request options.
@@ -128,7 +128,15 @@ class AuthenticationService
             // Do not check certificates
             'verify' => false,
             'auth' => [$component['username'], $component['password']],
-        ]);
+        ];
+        if ($this->parameterBag->has('app_certificate') && file_exists($this->parameterBag->get('app_certificate'))) {
+            $guzzleConfig['cert'] = $this->params->get('app_certificate');
+        }
+        if ($this->parameterBag->has('app_ssl_key') && file_exists($this->parameterBag->get('app_ssl_key'))) {
+            $guzzleConfig['ssl_key'] = $this->params->get('app_ssl_key');
+        }
+        $client = new Client($guzzleConfig);
+
         $response = $client->post($component['location'] . '/oauth/token', ['form_params' => ['grant_type' => 'client_credentials', 'scope' => 'api']]);
         $body = json_decode($response->getBody()->getContents(), true);
         return $body['access_token'];
