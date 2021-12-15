@@ -130,10 +130,10 @@ class AuthenticationService
             'auth' => [$component['username'], $component['password']],
         ];
         if ($this->parameterBag->has('app_certificate') && file_exists($this->parameterBag->get('app_certificate'))) {
-            $guzzleConfig['cert'] = $this->params->get('app_certificate');
+            $guzzleConfig['cert'] = $this->parameterBag->get('app_certificate');
         }
         if ($this->parameterBag->has('app_ssl_key') && file_exists($this->parameterBag->get('app_ssl_key'))) {
-            $guzzleConfig['ssl_key'] = $this->params->get('app_ssl_key');
+            $guzzleConfig['ssl_key'] = $this->parameterBag->get('app_ssl_key');
         }
         $client = new Client($guzzleConfig);
 
