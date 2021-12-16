@@ -83,16 +83,7 @@
         <service id="user.locale.subscriber" class="Conduction\CommonGroundBundle\Subscriber\UserLocaleSubscriber">
             <tag name="kernel.event_subscriber"/>
         </service>
-        <service id="ptc.subscriber" class="Conduction\CommonGroundBundle\Subscriber\PtcSubscriber">
-            <tag name="kernel.event_subscriber"/>
-        </service>
         <service id="valid.on.subscriber" class="Conduction\CommonGroundBundle\Subscriber\ValidOnSubscriber">
-            <tag name="kernel.event_subscriber"/>
-        </service>
-        <service id="vrc.subscriber" class="Conduction\CommonGroundBundle\Subscriber\VrcSubscriber">
-            <tag name="kernel.event_subscriber"/>
-        </service>
-        <service id="vsbe.subscriber" class="Conduction\CommonGroundBundle\Subscriber\VsbeSubscriber">
             <tag name="kernel.event_subscriber"/>
         </service>
         <service id="notification.subscriber" class="Conduction\CommonGroundBundle\Subscriber\NotificationSubscriber">
