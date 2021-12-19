@@ -168,7 +168,7 @@ class CommonGroundService
         $componentUrl = "{$parsedUrl['scheme']}://{$parsedUrl['host']}{$componentPath}";
         $components = $this->params->get('components');
         foreach ($components as $code => $component) {
-            if (array_key_exists('location', $component) && ($component['location'] == $componentUrl || strpos($component['location'], $componentUrl) !== false)) {
+            if ($component && array_key_exists('location', $component) && ($component['location'] == $componentUrl || strpos($component['location'], $componentUrl) !== false)) {
                 $returnUrl['component'] = $code;
 
                 return $returnUrl;
