@@ -161,7 +161,7 @@ class AuthenticationService
                 break;
         }
     
-        $websiteKey = $component['apikey']; // todo: use $component['apikey'] for WEBISTE_KEY?
+        $websiteKey = $component['apikey'];
         $uri        = strtolower(urlencode($requestOptions['url']));
         $nonce      = 'nonce_' . rand(0000000, 9999999);
         $time       = time();
