@@ -145,12 +145,9 @@ class AuthenticationService
     public function getHmacToken(array $requestOptions, array $component): string
     {
         // todo: what if we don't have a body, method or url in $requestOptions?
-        
         switch ($requestOptions['method']) {
             case "POST":
-                $post = json_encode($requestOptions['body']);
-    
-                $md5  = md5($post, true);
+                $md5  = md5($requestOptions['body'], true);
                 $post = base64_encode($md5);
                 break;
             case "GET":
@@ -160,12 +157,12 @@ class AuthenticationService
                 $post = base64_encode($get);
                 break;
         }
-    
+        
         $websiteKey = $component['apikey'];
         $uri        = strtolower(urlencode($requestOptions['url']));
         $nonce      = 'nonce_' . rand(0000000, 9999999);
         $time       = time();
-    
+        
         $hmac       = $websiteKey . $requestOptions['method'] . $uri . $time . $nonce . $post;
         $s          = hash_hmac('sha256', $hmac, $component['secret'], true);
         $hmac       = base64_encode($s);
