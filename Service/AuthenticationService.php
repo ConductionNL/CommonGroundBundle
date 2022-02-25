@@ -141,6 +141,37 @@ class AuthenticationService
         $body = json_decode($response->getBody()->getContents(), true);
         return $body['access_token'];
     }
+    
+    public function getHmacToken(array $requestOptions, array $component): string
+    {
+        // todo: what if we don't have a body, method or url in $requestOptions?
+        
+        switch ($requestOptions['method']) {
+            case "POST":
+                $post = json_encode($requestOptions['body']);
+    
+                $md5  = md5($post, true);
+                $post = base64_encode($md5);
+                break;
+            case "GET":
+            default:
+                // todo: what about a get call?
+                $get = 'not a UTF-8 string';
+                $post = base64_encode($get);
+                break;
+        }
+    
+        $websiteKey = $component['apikey']; // todo: use $component['apikey'] for WEBISTE_KEY?
+        $uri        = strtolower(urlencode($requestOptions['url']));
+        $nonce      = 'nonce_' . rand(0000000, 9999999);
+        $time       = time();
+    
+        $hmac       = $websiteKey . $requestOptions['method'] . $uri . $time . $nonce . $post;
+        $s          = hash_hmac('sha256', $hmac, $component['secret'], true);
+        $hmac       = base64_encode($s);
+        
+        return "hmac " . $websiteKey . ':' . $hmac . ':' . $nonce . ':' . $time;
+    }
 
     public function setAuthorization(array $requestOptions, ?array $component = []): array
     {
@@ -157,6 +188,9 @@ class AuthenticationService
                 case 'vrijbrp-jwt':
                     $requestOptions['headers']['Authorization'] = "Bearer {$this->getTokenFromUrl($component)}";
                     break;
+                case 'hmac':
+                    $requestOptions['headers']['Authorization'] = $this->getHmacToken($requestOptions, $component);
+                  break;
                 case 'apikey':
                     if (array_key_exists('authorizationHeader', $component) && array_key_exists('passthroughMethod', $component)) {
                         switch ($component['passthroughMethod']) {

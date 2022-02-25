@@ -262,6 +262,8 @@ class CommonGroundService
         }
 
         $requestOption = $this->authenticationService->setAuthorization([
+            'method'      => "GET",
+            'url'         => $url,
             'query'       => $query,
             'headers'     => $headers,
             'auth'        => $auth,
@@ -388,6 +390,8 @@ class CommonGroundService
         $query = $this->convertQuery($query);
 
         $requestOptions = $this->authenticationService->setAuthorization([
+            'method'      => "GET",
+            'url'         => $url,
             'query'       => $query,
             'headers'     => $headers,
             'auth'        => $auth,
@@ -505,6 +509,8 @@ class CommonGroundService
 
         $requestOptions = $this->authenticationService->setAuthorization([
             'body'        => json_encode($resource),
+            'method'      => "PUT",
+            'url'         => $url,
             'headers'     => $headers,
             'auth'        => $auth,
             'http_errors' => $error,
@@ -610,6 +616,8 @@ class CommonGroundService
         $resource = $this->cleanResource($resource);
         $requestOptions = $this->authenticationService->setAuthorization([
             'body'        => json_encode($resource),
+            'method'      => "POST",
+            'url'         => $url,
             'headers'     => $headers,
             'auth'        => $auth,
             'http_errors' => $error,
@@ -712,6 +720,8 @@ class CommonGroundService
             $headers['Accept'] = $component['accept'];
         }
         $requestOptions = $this->authenticationService->setAuthorization([
+            'method'      => "DELETE",
+            'url'         => $url,
             'headers'     => $headers,
             'auth'        => $auth,
         ], $component);
@@ -1308,6 +1318,8 @@ class CommonGroundService
 
         $requestOptions = $this->authenticationService->setAuthorization([
             'body'        => $content,
+            'method'      => $type,
+            'url'         => $url,
             'query'       => $query,
             'headers'     => $headers,
             'auth'        => $auth,
