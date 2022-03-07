@@ -70,6 +70,8 @@ class AuthenticationService
     {
         if (key_exists('id', $component)) {
             return $component['id'];
+        } elseif (key_exists('clientId', $component)) {
+            return $component['clientId'];
         }
 
         return $this->parameterBag->get('jwt.id');
