@@ -221,7 +221,7 @@ class CommonGroundService
 
         $url = $this->cleanUrl($endpoint, false, $autowire);
 
-        $item = $this->cache->getItem('commonground_' . md5($url) . '_' . $this->local);
+        $item = $this->cache->getItem('commonground_'.md5($url).'_'.$this->local);
         if ($item->isHit() && $cache && $this->params->get('app_cache')) {
             // return $item->get();
         }
@@ -262,7 +262,7 @@ class CommonGroundService
         }
 
         $requestOption = $this->authenticationService->setAuthorization([
-            'method'      => "GET",
+            'method'      => 'GET',
             'url'         => $url,
             'query'       => $query,
             'headers'     => $headers,
@@ -368,7 +368,7 @@ class CommonGroundService
 
         $url = $this->cleanUrl($endpoint, false, $autowire);
 
-        $item = $this->cache->getItem('commonground_' . md5($url) . '_' . $this->local);
+        $item = $this->cache->getItem('commonground_'.md5($url).'_'.$this->local);
 
         if ($item->isHit() && $cache && $this->params->get('app_cache')) {
             return $item->get();
@@ -390,7 +390,7 @@ class CommonGroundService
         $query = $this->convertQuery($query);
 
         $requestOptions = $this->authenticationService->setAuthorization([
-            'method'      => "GET",
+            'method'      => 'GET',
             'url'         => $url,
             'query'       => $query,
             'headers'     => $headers,
@@ -509,7 +509,7 @@ class CommonGroundService
 
         $requestOptions = $this->authenticationService->setAuthorization([
             'body'        => json_encode($resource),
-            'method'      => "PUT",
+            'method'      => 'PUT',
             'url'         => $url,
             'headers'     => $headers,
             'auth'        => $auth,
@@ -551,7 +551,7 @@ class CommonGroundService
         $response = $this->enrichObject($response, $parsedUrl);
 
         // Lets cache this item for speed purposes
-        $item = $this->cache->getItem('commonground_' . md5($url) . '_' . $this->local);
+        $item = $this->cache->getItem('commonground_'.md5($url).'_'.$this->local);
         $item->set($response);
         $item->expiresAt(new \DateTime('tomorrow'));
         $this->cache->save($item);
@@ -616,7 +616,7 @@ class CommonGroundService
         $resource = $this->cleanResource($resource);
         $requestOptions = $this->authenticationService->setAuthorization([
             'body'        => json_encode($resource),
-            'method'      => "POST",
+            'method'      => 'POST',
             'url'         => $url,
             'headers'     => $headers,
             'auth'        => $auth,
@@ -659,7 +659,7 @@ class CommonGroundService
         $response = $this->enrichObject($response, $parsedUrl);
 
         // Lets cache this item for speed purposes
-        $item = $this->cache->getItem('commonground_' . md5($url . '/' . $response['id']) . '_' . $this->local);
+        $item = $this->cache->getItem('commonground_'.md5($url.'/'.$response['id']).'_'.$this->local);
         $item->set($response);
         $item->expiresAt(new \DateTime('tomorrow'));
         $this->cache->save($item);
@@ -720,7 +720,7 @@ class CommonGroundService
             $headers['Accept'] = $component['accept'];
         }
         $requestOptions = $this->authenticationService->setAuthorization([
-            'method'      => "DELETE",
+            'method'      => 'DELETE',
             'url'         => $url,
             'headers'     => $headers,
             'auth'        => $auth,
@@ -755,7 +755,7 @@ class CommonGroundService
         }
 
         // Remove the item from cache
-        $this->cache->delete('commonground_' . md5($url) . '_' . $this->local);
+        $this->cache->delete('commonground_'.md5($url).'_'.$this->local);
 
         // creates the ResourceUpdateEvent and dispatches it
         if ($events) {
@@ -858,22 +858,22 @@ class CommonGroundService
                 $resourceType = $this->getUuidFromUrl($resourceType);
             }
 
-            $text = $text . $this->translator->trans($resourceType);
+            $text = $text.$this->translator->trans($resourceType);
         }
 
         // Lets try to name the object
         if (array_key_exists('reference', $resource)) {
-            $text = $text . ' ' . $resource['reference'];
+            $text = $text.' '.$resource['reference'];
         } elseif (array_key_exists('name', $resource)) {
-            $text = $text . ' ' . $resource['name'];
+            $text = $text.' '.$resource['name'];
         } elseif (array_key_exists('id', $resource)) {
-            $text = $text . ' ' . $resource['id'];
+            $text = $text.' '.$resource['id'];
         } else {
             /// do nothing
         }
 
         // set the message
-        $text = $text . ' ' . $this->translator->trans($message);
+        $text = $text.' '.$this->translator->trans($message);
 
         // Throw te actual flash
         $this->flash->add($type, $text);
@@ -905,7 +905,7 @@ class CommonGroundService
     {
         $url = $this->cleanUrl($url, $resource);
 
-        $this->cache->delete('commonground_' . md5($url));
+        $this->cache->delete('commonground_'.md5($url));
     }
 
     /*
@@ -938,14 +938,14 @@ class CommonGroundService
         // Non-Json suppor
 
         if (!$response) {
-            $this->flash->add('error', $statusCode . ':' . $url);
+            $this->flash->add('error', $statusCode.':'.$url);
         } // ZGW support
         elseif (!array_key_exists('@type', $response) && array_key_exists('types', $response)) {
             $this->flash->add('error', $this->translator->trans($response['detail']));
         } // Hydra Support
         elseif (array_key_exists('@type', $response) && $response['@type'] == 'ConstraintViolationList') {
             foreach ($response['violations'] as $violation) {
-                $this->flash->add('error', $violation['propertyPath'] . ' ' . $this->translator->trans($violation['message']));
+                $this->flash->add('error', $violation['propertyPath'].' '.$this->translator->trans($violation['message']));
             }
 
             return false;
@@ -954,7 +954,7 @@ class CommonGroundService
 
             return false;
         } else {
-            throw new HttpException($statusCode, $url . ' returned: ' . json_encode($response));
+            throw new HttpException($statusCode, $url.' returned: '.json_encode($response));
         }
 
         return $response;
@@ -1072,7 +1072,7 @@ class CommonGroundService
     {
         if (array_key_exists('@id', $object)) {
             $atId = $object['@id'];
-            $object['@id'] = "{$parsedUrl['scheme']}://{$parsedUrl['host']}/" . ltrim(HelperService::replaceOverlap(ltrim($parsedUrl['path'], '/'), ltrim($atId, '/')), '/');
+            $object['@id'] = "{$parsedUrl['scheme']}://{$parsedUrl['host']}/".ltrim(HelperService::replaceOverlap(ltrim($parsedUrl['path'], '/'), ltrim($atId, '/')), '/');
             $parsedUrl['path'] = ltrim(HelperService::removeOverlap(ltrim($parsedUrl['path'], '/'), ltrim($atId, '/')), '/');
         }
         foreach ($object as $key => $subObject) {
@@ -1126,7 +1126,7 @@ class CommonGroundService
                 $arryIterator = 0;
                 if (is_array($value)) {
                     foreach ($value as  $arryValue) {
-                        $queryString .= $parameter . '[]=' . $arryValue;
+                        $queryString .= $parameter.'[]='.$arryValue;
                         $arryIterator++;
                         if ($arryIterator < count($value)) {
                             $queryString .= '&';
@@ -1151,7 +1151,7 @@ class CommonGroundService
             if ($query != '') {
                 $query .= '&';
             }
-            $query .= '_local=' . $this->local;
+            $query .= '_local='.$this->local;
         }
 
         return $query;
@@ -1167,15 +1167,15 @@ class CommonGroundService
         if (is_array($url) && array_key_exists('component', $url)) {
             $route = '';
             if (array_key_exists('type', $url)) {
-                $route = $route . '/' . $url['type'];
+                $route = $route.'/'.$url['type'];
             }
             if (array_key_exists('id', $url)) {
-                $route = $route . '/' . $url['id'];
+                $route = $route.'/'.$url['id'];
             }
 
             // If the component is defined we get the config values
             if ($component = $this->getComponent($url['component'])) {
-                $url = $component['location'] . $route;
+                $url = $component['location'].$route;
 
                 // Components may overule the autowire
                 if (array_key_exists('autowire', $component)) {
@@ -1250,7 +1250,7 @@ class CommonGroundService
         }
 
         $host_names = explode('.', $host);
-        $host = $host_names[count($host_names) - 2] . '.' . $host_names[count($host_names) - 1];
+        $host = $host_names[count($host_names) - 2].'.'.$host_names[count($host_names) - 1];
 
         return $host;
     }
@@ -1374,7 +1374,7 @@ class CommonGroundService
     {
         $url = $this->cleanUrl(['component' => $component]);
 
-        $item = $this->cache->getItem('componentHealth_' . md5($component));
+        $item = $this->cache->getItem('componentHealth_'.md5($component));
         if ($item->isHit() && !$force) {
             return $item->get();
         }

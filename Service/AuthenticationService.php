@@ -81,10 +81,10 @@ class AuthenticationService
         $clientId = $this->getApplicationId($component);
 
         return json_encode([
-            'iss'                => $clientId,
-            'iat'                => $now->getTimestamp(),
-            'client_id'          => $clientId,
-            'user_id'            => $this->parameterBag->get('app_name'),
+            'iss'                 => $clientId,
+            'iat'                 => $now->getTimestamp(),
+            'client_id'           => $clientId,
+            'user_id'             => $this->parameterBag->get('app_name'),
             'user_representation' => $this->parameterBag->get('app_name'),
         ]);
     }
@@ -127,7 +127,7 @@ class AuthenticationService
             'headers' => ['Content-Type' => 'application/x-www-form-urlencoded'],
             // Do not check certificates
             'verify' => false,
-            'auth' => [$component['username'], $component['password']],
+            'auth'   => [$component['username'], $component['password']],
         ];
         if ($this->parameterBag->has('app_certificate') && file_exists($this->parameterBag->get('app_certificate'))) {
             $guzzleConfig['cert'] = $this->parameterBag->get('app_certificate');
@@ -137,37 +137,38 @@ class AuthenticationService
         }
         $client = new Client($guzzleConfig);
 
-        $response = $client->post($component['location'] . '/oauth/token', ['form_params' => ['grant_type' => 'client_credentials', 'scope' => 'api']]);
+        $response = $client->post($component['location'].'/oauth/token', ['form_params' => ['grant_type' => 'client_credentials', 'scope' => 'api']]);
         $body = json_decode($response->getBody()->getContents(), true);
+
         return $body['access_token'];
     }
-    
+
     public function getHmacToken(array $requestOptions, array $component): string
     {
         // todo: what if we don't have a body, method or url in $requestOptions?
         switch ($requestOptions['method']) {
-            case "POST":
-                $md5  = md5($requestOptions['body'], true);
+            case 'POST':
+                $md5 = md5($requestOptions['body'], true);
                 $post = base64_encode($md5);
                 break;
-            case "GET":
+            case 'GET':
             default:
                 // todo: what about a get call?
                 $get = 'not a UTF-8 string';
                 $post = base64_encode($get);
                 break;
         }
-        
+
         $websiteKey = $component['apikey'];
-        $uri        = strtolower(urlencode($requestOptions['url']));
-        $nonce      = 'nonce_' . rand(0000000, 9999999);
-        $time       = time();
-        
-        $hmac       = $websiteKey . $requestOptions['method'] . $uri . $time . $nonce . $post;
-        $s          = hash_hmac('sha256', $hmac, $component['secret'], true);
-        $hmac       = base64_encode($s);
-        
-        return "hmac " . $websiteKey . ':' . $hmac . ':' . $nonce . ':' . $time;
+        $uri = strtolower(urlencode($requestOptions['url']));
+        $nonce = 'nonce_'.rand(0000000, 9999999);
+        $time = time();
+
+        $hmac = $websiteKey.$requestOptions['method'].$uri.$time.$nonce.$post;
+        $s = hash_hmac('sha256', $hmac, $component['secret'], true);
+        $hmac = base64_encode($s);
+
+        return 'hmac '.$websiteKey.':'.$hmac.':'.$nonce.':'.$time;
     }
 
     public function setAuthorization(array $requestOptions, ?array $component = []): array
@@ -177,7 +178,7 @@ class AuthenticationService
                 case 'jwt-HS256':
                 case 'jwt-RS512':
                 case 'jwt':
-                    $requestOptions['headers']['Authorization'] = 'Bearer ' . $this->getJwtToken($component);
+                    $requestOptions['headers']['Authorization'] = 'Bearer '.$this->getJwtToken($component);
                     break;
                 case 'username-password':
                     $requestOptions['auth'] = [$component['username'], $component['password']];

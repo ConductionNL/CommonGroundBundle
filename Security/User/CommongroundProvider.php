@@ -191,5 +191,4 @@ class CommongroundProvider implements UserProviderInterface
                 );
         }
     }
-
 }
