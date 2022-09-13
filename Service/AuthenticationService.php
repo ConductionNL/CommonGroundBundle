@@ -4,7 +4,6 @@ namespace Conduction\CommonGroundBundle\Service;
 
 use DateTime;
 use GuzzleHttp\Client;
-use http\Exception\InvalidArgumentException;
 use Jose\Component\Checker\AlgorithmChecker;
 use Jose\Component\Checker\HeaderCheckerManager;
 use Jose\Component\Checker\InvalidHeaderException;
@@ -19,7 +18,6 @@ use Jose\Component\Signature\JWSTokenSupport;
 use Jose\Component\Signature\JWSVerifier;
 use Jose\Component\Signature\Serializer\CompactSerializer;
 use Jose\Component\Signature\Serializer\JWSSerializerManager;
-use PhpOffice\PhpWord\Writer\HTML\Part\Head;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 
@@ -36,6 +34,7 @@ class AuthenticationService
 
     /**
      * @param array $component
+     *
      * @return JWK
      */
     public function convertRSAtoJWK(array $component): JWK
@@ -191,7 +190,7 @@ class AuthenticationService
                 case 'jwt-HS256':
                 case 'jwt-RS512':
                 case 'jwt':
-                    $requestOptions['headers']['Authorization'] = 'Bearer ' . $this->getJwtToken($component);
+                    $requestOptions['headers']['Authorization'] = 'Bearer '.$this->getJwtToken($component);
                     break;
                 case 'username-password':
                     $requestOptions['auth'] = [$component['username'], $component['password']];
@@ -227,32 +226,39 @@ class AuthenticationService
     }
 
     /**
-     * Decides if the provided JWT token is signed with the RS512 Algorithm
+     * Decides if the provided JWT token is signed with the RS512 Algorithm.
      *
-     * @param   JWT     $token  The token provided by the user
-     * @return  bool            Whether the token is in HS256 or not
+     * @param JWT $token The token provided by the user
+     *
+     * @return bool Whether the token is in HS256 or not
      */
-    public function checkRS512(JWT $token) {
+    public function checkRS512(JWT $token)
+    {
         $headerChecker = new HeaderCheckerManager([new AlgorithmChecker(['RS512'])], [new JWSTokenSupport()]);
-        try{
+
+        try {
             $headerChecker->check($token, 0);
+
             return true;
         } catch (InvalidHeaderException $exception) {
             return false;
-
         }
     }
 
     /**
-     * Decides if the provided JWT token is signed with the HS256 Algorithm
+     * Decides if the provided JWT token is signed with the HS256 Algorithm.
      *
-     * @param   JWT     $token  The token provided by the user
-     * @return  bool            Whether the token is in HS256 or not
+     * @param JWT $token The token provided by the user
+     *
+     * @return bool Whether the token is in HS256 or not
      */
-    public function checkHS256(JWT $token) {
+    public function checkHS256(JWT $token)
+    {
         $headerChecker = new HeaderCheckerManager([new AlgorithmChecker(['HS256'])], [new JWSTokenSupport()]);
-        try{
+
+        try {
             $headerChecker->check($token, 0);
+
             return true;
         } catch (InvalidHeaderException $exception) {
             return false;
@@ -260,34 +266,36 @@ class AuthenticationService
     }
 
     /**
-     * Checks the algorithm of the JWT token and decides how to generate a JWK from the provided public key
+     * Checks the algorithm of the JWT token and decides how to generate a JWK from the provided public key.
      *
-     * @param   JWT     $token      The JWT token sent by the user
-     * @param   string  $publicKey  The public key provided by the application
-     * @return  JWK                 The resulting JWK for verifying the JWT
+     * @param JWT    $token     The JWT token sent by the user
+     * @param string $publicKey The public key provided by the application
+     *
+     * @return JWK The resulting JWK for verifying the JWT
      */
     public function checkHeadersAndGetJWK(JWT $token, string $publicKey): JWK
     {
-
         $headerChecker = new HeaderCheckerManager([new AlgorithmChecker(['HS256', 'RS512'])], [new JWSTokenSupport()]);
-        try{
+
+        try {
             $headerChecker->check($token, 0);
         } catch (InvalidHeaderException $exception) {
             throw $exception;
         }
 
-        if($this->checkRS512($token)){
+        if ($this->checkRS512($token)) {
             $publicKeyFile = $this->fileService->writeFile('publickey', $publicKey);
             $jwk = JWKFactory::createFromKeyFile($publicKeyFile, null, []);
             $this->fileService->removeFile($publicKeyFile);
+
             return $jwk;
-        } elseif($this->checkHS256($token)) {
+        } elseif ($this->checkHS256($token)) {
             return JWKFactory::createFromSecret($publicKey, ['alg' => 'HS256', 'use' => 'sig']);
         }
     }
 
     /**
-     * Verifies the JWT token and returns the payload if the JWT token is valid
+     * Verifies the JWT token and returns the payload if the JWT token is valid.
      *
      * @param string $token     The token to verify
      * @param string $publicKey The public key to verify the token to
