@@ -4,12 +4,17 @@ namespace Conduction\CommonGroundBundle\Service;
 
 use DateTime;
 use GuzzleHttp\Client;
+use Jose\Component\Checker\AlgorithmChecker;
+use Jose\Component\Checker\HeaderCheckerManager;
+use Jose\Component\Checker\InvalidHeaderException;
 use Jose\Component\Core\AlgorithmManager;
 use Jose\Component\Core\JWK;
+use Jose\Component\Core\JWT;
 use Jose\Component\KeyManagement\JWKFactory;
 use Jose\Component\Signature\Algorithm\HS256;
 use Jose\Component\Signature\Algorithm\RS512;
 use Jose\Component\Signature\JWSBuilder;
+use Jose\Component\Signature\JWSTokenSupport;
 use Jose\Component\Signature\JWSVerifier;
 use Jose\Component\Signature\Serializer\CompactSerializer;
 use Jose\Component\Signature\Serializer\JWSSerializerManager;
@@ -27,6 +32,11 @@ class AuthenticationService
         $this->fileService = new FileService();
     }
 
+    /**
+     * @param array $component
+     *
+     * @return JWK
+     */
     public function convertRSAtoJWK(array $component): JWK
     {
         if (key_exists('privateKey', $component)) {
@@ -216,6 +226,77 @@ class AuthenticationService
     }
 
     /**
+     * Decides if the provided JWT token is signed with the RS512 Algorithm.
+     *
+     * @param JWT $token The token provided by the user
+     *
+     * @return bool Whether the token is in HS256 or not
+     */
+    public function checkRS512(JWT $token)
+    {
+        $headerChecker = new HeaderCheckerManager([new AlgorithmChecker(['RS512'])], [new JWSTokenSupport()]);
+
+        try {
+            $headerChecker->check($token, 0);
+
+            return true;
+        } catch (InvalidHeaderException $exception) {
+            return false;
+        }
+    }
+
+    /**
+     * Decides if the provided JWT token is signed with the HS256 Algorithm.
+     *
+     * @param JWT $token The token provided by the user
+     *
+     * @return bool Whether the token is in HS256 or not
+     */
+    public function checkHS256(JWT $token)
+    {
+        $headerChecker = new HeaderCheckerManager([new AlgorithmChecker(['HS256'])], [new JWSTokenSupport()]);
+
+        try {
+            $headerChecker->check($token, 0);
+
+            return true;
+        } catch (InvalidHeaderException $exception) {
+            return false;
+        }
+    }
+
+    /**
+     * Checks the algorithm of the JWT token and decides how to generate a JWK from the provided public key.
+     *
+     * @param JWT    $token     The JWT token sent by the user
+     * @param string $publicKey The public key provided by the application
+     *
+     * @return JWK The resulting JWK for verifying the JWT
+     */
+    public function checkHeadersAndGetJWK(JWT $token, string $publicKey): JWK
+    {
+        $headerChecker = new HeaderCheckerManager([new AlgorithmChecker(['HS256', 'RS512'])], [new JWSTokenSupport()]);
+
+        try {
+            $headerChecker->check($token, 0);
+        } catch (InvalidHeaderException $exception) {
+            throw $exception;
+        }
+
+        if ($this->checkRS512($token)) {
+            $publicKeyFile = $this->fileService->writeFile('publickey', $publicKey);
+            $jwk = JWKFactory::createFromKeyFile($publicKeyFile, null, []);
+            $this->fileService->removeFile($publicKeyFile);
+
+            return $jwk;
+        } elseif ($this->checkHS256($token)) {
+            return JWKFactory::createFromSecret($publicKey, ['alg' => 'HS256', 'use' => 'sig']);
+        }
+    }
+
+    /**
+     * Verifies the JWT token and returns the payload if the JWT token is valid.
+     *
      * @param string $token     The token to verify
      * @param string $publicKey The public key to verify the token to
      *
@@ -227,15 +308,12 @@ class AuthenticationService
     {
         $algorithmManager = new AlgorithmManager([new HS256(), new RS512()]);
         $jwsVerifier = new JWSVerifier($algorithmManager);
-        $publicKeyFile = $this->fileService->writeFile('publickey', $publicKey);
-        $jwk = JWKFactory::createFromKeyFile($publicKeyFile, null, []);
-
         $serializerManager = new JWSSerializerManager([new CompactSerializer()]);
 
         $jws = $serializerManager->unserialize($token);
-        if ($jwsVerifier->verifyWithKey($jws, $jwk, 0)) {
-            $this->fileService->removeFile($publicKeyFile);
+        $jwk = $this->checkHeadersAndGetJWK($jws, $publicKey);
 
+        if ($jwsVerifier->verifyWithKey($jws, $jwk, 0)) {
             return json_decode($jws->getPayload(), true);
         } else {
             throw new AuthenticationException('Unauthorized: The provided Authorization header is invalid', 401);
