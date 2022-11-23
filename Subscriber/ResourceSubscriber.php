@@ -15,15 +15,15 @@ use Symfony\Component\Serializer\SerializerInterface;
 
 class ResourceSubscriber implements EventSubscriberInterface
 {
-    private ParameterBagInterface $params;
+    private ParameterBagInterface $parameterBag;
     private EntityManagerInterface $em;
     private SerializerInterface $serializer;
     private CommonGroundService $commonGroundService;
     private Inflector $inflector;
 
-    public function __construct(ParameterBagInterface $params, EntityManagerInterface $em, SerializerInterface $serializer, CommonGroundService $commonGroundService)
+    public function __construct(ParameterBagInterface $parameterBag, EntityManagerInterface $em, SerializerInterface $serializer, CommonGroundService $commonGroundService)
     {
-        $this->params = $params;
+        $this->parameterBag = $parameterBag;
         $this->em = $em;
         $this->serializer = $serializer;
         $this->commonGroundService = $commonGroundService;
@@ -37,47 +37,68 @@ class ResourceSubscriber implements EventSubscriberInterface
         ];
     }
 
+    public function getNotificationComponent(array $components): ?string
+    {
+        if (key_exists('notificatiecomponent', $components)) {
+            return 'notificatiecomponent';
+        } elseif (key_exists('notification-component', $components)) {
+            return 'notification-component';
+        } elseif (key_exists('notificationcomponent', $components)) {
+            return 'notificationcomponent';
+        } elseif (key_exists('notification-regitration-component', $components)) {
+            return 'notification-registration-component';
+        } elseif (key_exists('nrc', $components)) {
+            return 'nrc';
+        } else {
+            return null;
+        }
+    }
+
+    public function getType(ViewEvent $event, $result): array
+    {
+        $results = [];
+        if ($result && is_object($result)) {
+            $type = explode('\\', get_class($result));
+            $results['type'] = $this->inflector->pluralize($this->inflector->tableize(end($type)));
+            $results['id'] = $result->getId();
+        } else {
+            $properties = array_slice(explode('/', $event->getRequest()->getPathInfo()), 1);
+            $results['type'] = $properties[0];
+            $results['id'] = $properties[1];
+        }
+
+        return $results;
+    }
+
     public function notify(ViewEvent $event)
     {
         $method = $event->getRequest()->getMethod();
         $result = $event->getControllerResult();
         $route = $event->getRequest()->attributes->get('_route');
+        $components = $this->parameterBag->get('components');
 
-        if ($result && $this->params->get('app_type') != 'application') {
-            $type = explode('\\', get_class($result));
-            $type = $this->inflector->pluralize($this->inflector->tableize(end($type)));
-        } else {
-            $properties = array_slice(explode('/', $event->getRequest()->getPathInfo()), -2);
-            //@TODO: make dynamic for BRP etc.
-            $type = $properties[0];
-            $id = $properties[1];
+        $notificationComponent = $this->getNotificationComponent($components);
+        if (!$notificationComponent) {
+            return;
         }
-
         // Only do somthing if we are on te log route and the entity is logable
-        if ($this->params->get('app_notification') == 'true') {
-            $notification = [];
-            $notification['topic'] = "{$this->params->get('app_name')}/$type";
-            switch ($method) {
-                case 'POST':
-                    $notification['action'] = 'Create';
-                    break;
-                case 'PUT':
-                    $notification['action'] = 'Update';
-                    break;
-                case 'DELETE':
-                    $notification['action'] = 'Delete';
-                    break;
-                default:
-                    return;
-            }
-
-            if ($result) {
-                $notification['resource'] = "{$this->params->get('app_url')}/$type/{$result->getId()}";
-            } else {
-                $notification['resource'] = "{$this->params->get('app_url')}/$type/$id";
-            }
-
-            $this->commonGroundService->createResource($notification, ['component' => 'nrc', 'type' => 'notifications'], false, true, false);
+        $notification = [];
+        switch ($method) {
+            case 'POST':
+                $notification['action'] = 'Create';
+                break;
+            case 'PUT':
+                $notification['action'] = 'Update';
+                break;
+            case 'DELETE':
+                $notification['action'] = 'Delete';
+                break;
+            default:
+                return;
         }
+        $properties = $this->getType($event, $result);
+        $notification['topic'] = "{$this->parameterBag->get('app_name')}/{$properties['type']}";
+        $notification['resource'] = "{$this->parameterBag->get('app_url')}/{$properties['type']}/{$properties['id']}";
+        $this->commonGroundService->createResource($notification, ['component' => $notificationComponent, 'type' => 'notifications'], false, true, false);
     }
 }

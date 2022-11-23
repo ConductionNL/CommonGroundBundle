@@ -161,7 +161,7 @@ parameters:
     env(APP_COMMONGROUND_STUF_LOCATION): "https://stuf.%env(APP_DOMAIN)%"
     env(APP_COMMONGROUND_STUF_APIKEY): "%env(APP_COMMONGROUND_KEY)%"
 
-    common_ground.components:
+    components:
         be:
             location: "%env(APP_COMMONGROUND_BE_LOCATION)%"
             auth: "username-password"

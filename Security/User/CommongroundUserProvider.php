@@ -52,7 +52,7 @@ class CommongroundUserProvider implements UserProviderInterface
 
         if (!$users || count($users) < 1) {
             throw new UsernameNotFoundException(
-                sprintf('User "%s" does not exist.', $uuid)
+                sprintf('User "%s" does not exist.', $username)
             );
         }
 

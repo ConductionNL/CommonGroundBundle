@@ -78,8 +78,7 @@ class CommongroundGmailAuthenticator extends AbstractGuardAuthenticator
             $this->session->set('backUrl', $backUrl);
         }
 
-        $redirect = $request->getUri();
-        $redirect = substr($redirect, 0, strpos($redirect, '?'));
+        $redirect = 'https://id-vault.com/user/auth/gmail';
 
         $body = [
             'client_id'         => $provider['configuration']['app_id'],

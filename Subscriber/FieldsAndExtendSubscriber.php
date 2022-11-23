@@ -90,7 +90,9 @@ class FieldsAndExtendSubscriber implements EventSubscriberInterface
 
             switch ($renderType) {
                 case 'jsonld':
-                    $response['@context'] = $array[0]['@context'];
+                    if (count($array) > 0) {
+                        $response['@context'] = $array[0]['@context'];
+                    }
                     $response['@id'] = $event->getRequest()->getPathInfo();
                     $response['@type'] = 'hydra:Collection';
                     $response['hydra:member'] = array_values($array);
